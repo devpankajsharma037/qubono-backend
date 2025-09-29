@@ -8,5 +8,5 @@ admin.site.index_title = "Qubono"
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path(f'api/', include('customer.urls')),
+    path('api/', include('customer.urls')),
 ]
