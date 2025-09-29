@@ -35,3 +35,38 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
                 'required': False
             }
         }
+
+class UserLoginSerializer(serializers.Serializer):
+    email       = serializers.EmailField(required=True)
+    password    = serializers.CharField(required=True,write_only=True)
+    class Meta:
+        model = User
+        fields = "__all__"
+
+    def validate(self, data):
+        email       = data.get('email')
+        password    = data.get('password')
+        if email and password:
+            modelClass = self.Meta.model
+
+            userObj = modelClass.objects.filter(email=email,is_active=False)
+            if userObj.exists():
+                raise serializers.ValidationError({'error':'Account is not verified'})
+
+            userObj = modelClass.objects.filter(email=email)
+            if not userObj.exists():
+                raise serializers.ValidationError({'error':'Invalid credentials'})
+            
+            savedPasswordHash = userObj.first().password
+            if not check_password(password,savedPasswordHash):
+                raise serializers.ValidationError({'error':'Invalid credentials'})
+            
+            data['user'] = userObj.first()
+        else:
+            raise serializers.ValidationError({'error':'Must include "email" and "password"'})
+        return data
+  
+class UserInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        exclude = ('password','is_staff','is_superuser','user_permissions','groups')

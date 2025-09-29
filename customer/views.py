@@ -5,14 +5,14 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
-
+from .function.jwtToken import jwtToken
 
 
 class UserAuthView(viewsets.ViewSet):
     permission_classes = [AllowAny]
     serializer_class = UserRegistrationSerializer
 
-    def post(self, request):
+    def register(self, request):
         context = {}
         try:
             serializer = self.serializer_class(data=request.data)
@@ -31,6 +31,38 @@ class UserAuthView(viewsets.ViewSet):
         except Exception as e:
             context["status"]   = False
             context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
-            context["message"]  = "Something went wrong"
+            context["message"]  = "Something went wrong please try agin later!"
             context["error"]    = str(e)
+            return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+    def login(self, request):
+        context = {}
+        try:
+            serializer = UserLoginSerializer(data=request.data)
+            
+            if not serializer.is_valid():
+                context["status"]       = False
+                context["code"]         = status.HTTP_400_BAD_REQUEST
+                context["message"]      = serializer.errors
+                return Response(context, status=status.HTTP_400_BAD_REQUEST)
+
+            user = serializer.validated_data.get('user')
+            serializer = UserInfoSerializer(user)
+            tokens = jwtToken(user)
+
+            context["status"] = True
+            context["code"] = status.HTTP_200_OK
+            context["message"] = "success."
+            context['data'] = {
+                "info": serializer.data,
+                "token":{
+                    "refresh": tokens["refresh"],
+                    "access": tokens["access"],
+                }
+            }
+            return Response(context, status=status.HTTP_200_OK)
+        except Exception as e:
+            context["status"]   = False
+            context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
+            context["message"]  = "Something went wrong please try agin later!0"
             return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
