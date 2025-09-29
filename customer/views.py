@@ -8,7 +8,7 @@ from rest_framework.permissions import AllowAny
 
 
 
-class UserRegistrationView(viewsets.ViewSet):
+class UserAuthView(viewsets.ViewSet):
     permission_classes = [AllowAny]
     serializer_class = UserRegistrationSerializer
 
