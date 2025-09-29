@@ -18,7 +18,7 @@ class Type(models.TextChoices):
 
 class Token(CommonModel):
     user    = models.ForeignKey(User, on_delete=models.CASCADE)
-    role    = models.CharField(max_length=20,choices=Type.choices,default=Type.OTP)
+    type    = models.CharField(max_length=20,choices=Type.choices,default=Type.OTP)
     token   = models.CharField(max_length=100,null=True,blank=True)
 
     class Meta:

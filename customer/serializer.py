@@ -1,8 +1,7 @@
-import profile
-from typing import Required
 from rest_framework import serializers
-from .models import User
+from .models import User,Token
 from rest_framework.validators import UniqueValidator
+from core.utils.common import generateToken
 from django.contrib.auth.hashers import make_password,check_password
 
 
@@ -15,6 +14,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data['password']  = make_password(validated_data.get('password'))
         validated_data['is_active'] = True
+        validated_data['username']  = validated_data.get('email')
         validated_data['role']      = 'EMPLOYEE'
         return super().create(validated_data)
     
@@ -70,3 +70,41 @@ class UserInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         exclude = ('password','is_staff','is_superuser','user_permissions','groups')
+
+class ForgotAccountValidationSerializer(serializers.Serializer):
+    email    = serializers.CharField(required=True)
+    def validate(self, attrs):
+        email = attrs.get('email')
+        try:
+            try:
+                userObj = User.objects.get(email=email)
+            except User.DoesNotExist:
+                raise serializers.ValidationError({"email": "Account not found"}) 
+
+            if not userObj.is_active:
+                raise serializers.ValidationError({"email": "Account not activated"}) 
+            
+            token = generateToken(userObj)
+            Token.objects.create(user=userObj,type='FORGOT_PASSWORD',token=token)
+            attrs['user'] = userObj
+            attrs['token'] = token
+        except User.DoesNotExist:
+            raise serializers.ValidationError({"email": "Email is required"}) 
+        return attrs
+    
+class ResetPasswordSerializer(serializers.Serializer):
+    password    = serializers.CharField(required=True)
+    token       = serializers.CharField(required=True)
+    def validate(self, attrs):
+        token       = attrs.get('token')
+        password    = attrs.get('password')
+        try:
+            tokenObj = Token.objects.get(token=token,type='FORGOT_PASSWORD')
+            tokenObj.token = ''
+            tokenObj.save()
+            userObj             = User.objects.get(email=tokenObj.user.email)
+            userObj.password    = make_password(password)
+            attrs['user'] = userObj
+        except Token.DoesNotExist:
+            raise serializers.ValidationError({"token": "token is expired"}) 
+        return attrs

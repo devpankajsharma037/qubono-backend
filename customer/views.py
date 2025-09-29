@@ -52,7 +52,7 @@ class UserAuthView(viewsets.ViewSet):
 
             context["status"] = True
             context["code"] = status.HTTP_200_OK
-            context["message"] = "success."
+            context["message"] = "success"
             context['data'] = {
                 "info": serializer.data,
                 "token":{
@@ -64,5 +64,53 @@ class UserAuthView(viewsets.ViewSet):
         except Exception as e:
             context["status"]   = False
             context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
-            context["message"]  = "Something went wrong please try agin later!0"
+            context["message"]  = "Something went wrong please try agin later!"
+            return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def forgotPassword(self, request):
+        context = {}
+        try:
+            serializer = ForgotAccountValidationSerializer(data=request.data)
+            if not serializer.is_valid():
+                context["status"]       = False
+                context["code"]         = status.HTTP_400_BAD_REQUEST
+                context["message"]      = serializer.errors
+                return Response(context, status=status.HTTP_400_BAD_REQUEST)
+        
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["message"]  = "success"
+            return Response(context, status=status.HTTP_200_OK)
+        except Exception as e:
+            context["status"]       = False
+            context["code"]         = status.HTTP_500_INTERNAL_SERVER_ERROR
+            context["message"]      = "Something went wrong please try agin later!"
+            return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+    def restPassword(self, request):
+        context = {}
+        try:
+            serializer = ResetPasswordSerializer(data=request.data)
+            if not serializer.is_valid():
+                context["status"]   = False
+                context["code"]     = status.HTTP_400_BAD_REQUEST
+                context["message"]  = serializer.errors
+                return Response(context, status=status.HTTP_400_BAD_REQUEST)
+
+            user = serializer.validated_data.get('user')
+            tokens = jwtToken(user)
+
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["message"]  = "success"
+            context['data'] = {
+                "access": tokens["access"],
+                "refresh": tokens["refresh"]
+            }
+            return Response(context, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            context["status"] = False
+            context["code"] = status.HTTP_500_INTERNAL_SERVER_ERROR
+            context["message"] = "Something went wrong please try agin later!"
             return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
