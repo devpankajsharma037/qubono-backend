@@ -99,11 +99,10 @@ class ResetPasswordSerializer(serializers.Serializer):
         token       = attrs.get('token')
         password    = attrs.get('password')
         try:
-            tokenObj = Token.objects.get(token=token,type='FORGOT_PASSWORD')
-            tokenObj.token = ''
-            tokenObj.save()
+            tokenObj            = Token.objects.get(token=token,type='FORGOT_PASSWORD')
             userObj             = User.objects.get(email=tokenObj.user.email)
             userObj.password    = make_password(password)
+            tokenObj.delete()
             attrs['user'] = userObj
         except Token.DoesNotExist:
             raise serializers.ValidationError({"token": "token is expired"}) 
