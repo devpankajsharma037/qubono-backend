@@ -37,3 +37,25 @@ class Deal(CommonModel):
 
     class Meta:
         verbose_name_plural = 'Deal'
+
+class Category(CommonModel):
+    name        = models.CharField(max_length=100)
+    note        = models.TextField(blank=True,null=True)
+    is_popular  = models.BooleanField(default=False)
+    is_premium  = models.BooleanField(default=False)
+    meta        = models.JSONField(blank=True,null=True)
+    merchant    = models.ForeignKey(Merchant,on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name_plural = 'Category'
+
+class SubCategory(CommonModel):
+    name        = models.CharField(max_length=100)
+    note        = models.TextField(blank=True,null=True)
+    is_popular  = models.BooleanField(default=False)
+    is_premium  = models.BooleanField(default=False)
+    meta        = models.JSONField(blank=True,null=True)
+    category    = models.ForeignKey(Category,on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name_plural = 'Sub Category'
