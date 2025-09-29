@@ -13,8 +13,9 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     email       = serializers.CharField(required=True,validators=[UniqueValidator(queryset=User.objects.all(),message='Email already exists')])
     
     def create(self, validated_data):
-        validated_data['password'] = make_password(validated_data.get('password'))
+        validated_data['password']  = make_password(validated_data.get('password'))
         validated_data['is_active'] = True
+        validated_data['role']      = 'EMPLOYEE'
         return super().create(validated_data)
     
     class Meta:
