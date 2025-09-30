@@ -5,11 +5,11 @@ from django.contrib.auth.models import Group
 admin.site.unregister(Group)
 
 class UserAdmin(admin.ModelAdmin):
-    list_display    = ['id', 'first_name', 'last_name','email','role']
+    list_display    = ['id', 'first_name', 'last_name','email','role','is_active']
     list_filter     = ['is_active','email','role']
     search_fields   = ['first_name', 'last_name', 'email']
 admin.site.register(User, UserAdmin)
 
 class TokenAdmin(admin.ModelAdmin):
-    list_display = ['id','user','token']
+    list_display = ['id','user','type','token']
 admin.site.register(Token, TokenAdmin)

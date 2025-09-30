@@ -12,10 +12,10 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     email       = serializers.CharField(required=True,validators=[UniqueValidator(queryset=User.objects.all(),message='Email already exists')])
     
     def create(self, validated_data):
+        validated_data['role']      = 'EMPLOYEE'
         validated_data['password']  = make_password(validated_data.get('password'))
         validated_data['is_active'] = False
         validated_data['username']  = validated_data.get('email')
-        validated_data['role']      = 'EMPLOYEE'
         return super().create(validated_data)
     
     class Meta:
@@ -108,7 +108,6 @@ class ResetPasswordSerializer(serializers.Serializer):
             raise serializers.ValidationError({"token": "token is expired"}) 
         return attrs
     
-
 class VerifyAccountSerializer(serializers.Serializer):
     token    = serializers.CharField(required=True)
     email    = serializers.CharField(required=True)

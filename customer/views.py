@@ -22,11 +22,10 @@ class UserAuthView(viewsets.ViewSet):
             serializer = UserRegistrationSerializer(data=payLoad)
             if not serializer.is_valid():
                 context["status"]       = False
-                context["code"]  = status.HTTP_400_BAD_REQUEST
+                context["code"]         = status.HTTP_400_BAD_REQUEST
                 context["message"]      = serializer.errors
                 return Response(context, status=status.HTTP_400_BAD_REQUEST)
-
-            serializer.save()
+            
             user = serializer.save()
 
             token = generateToken(user)
