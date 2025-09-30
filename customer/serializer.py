@@ -75,21 +75,20 @@ class ForgotAccountValidationSerializer(serializers.Serializer):
     email    = serializers.CharField(required=True)
     def validate(self, attrs):
         email = attrs.get('email')
+        
         try:
-            try:
-                userObj = User.objects.get(email=email)
-            except User.DoesNotExist:
-                raise serializers.ValidationError({"email": "Account not found"}) 
-
-            if not userObj.is_active:
-                raise serializers.ValidationError({"email": "Account not activated"}) 
-            
-            token = generateToken(userObj)
-            Token.objects.create(user=userObj,type='FORGOT_PASSWORD',token=token)
-            attrs['user'] = userObj
-            attrs['token'] = token
+            userObj = User.objects.get(email=email)
         except User.DoesNotExist:
-            raise serializers.ValidationError({"email": "Email is required"}) 
+            raise serializers.ValidationError({"error": "Account not found"}) 
+
+        if not userObj.is_active:
+            raise serializers.ValidationError({"error": "Account not activated"}) 
+        
+        token = generateToken(userObj)
+        Token.objects.filter(user=userObj,type='FORGOT_PASSWORD').delete()
+        Token.objects.create(user=userObj,type='FORGOT_PASSWORD',token=token)
+        attrs['user'] = userObj
+        attrs['token'] = token
         return attrs
     
 class ResetPasswordSerializer(serializers.Serializer):
@@ -105,7 +104,7 @@ class ResetPasswordSerializer(serializers.Serializer):
             tokenObj.delete()
             attrs['user'] = userObj
         except Token.DoesNotExist:
-            raise serializers.ValidationError({"token": "token is expired"}) 
+            raise serializers.ValidationError({"error": "token is expired"}) 
         return attrs
     
 class VerifyAccountSerializer(serializers.Serializer):

@@ -7,7 +7,7 @@ from .function.jwtToken import jwtToken
 from django.utils import timezone
 from django.conf import settings
 from core.utils.common import generateToken
-from .email.authEmailSender import verificationEmail
+from .email.authEmailSender import verificationEmail,forgotEmail
 from core.utils.scheduler import scheduler
 WEB_APP_URL        = settings.WEB_APP_URL
 
@@ -125,7 +125,12 @@ class UserAuthView(viewsets.ViewSet):
                 context["code"]         = status.HTTP_400_BAD_REQUEST
                 context["message"]      = serializer.errors
                 return Response(context, status=status.HTTP_400_BAD_REQUEST)
-        
+            
+            user    = serializer.validated_data.get('user')
+            token   = serializer.validated_data.get('token')
+            
+            emailContext = {"email":user.email,"url":f'{WEB_APP_URL}/reset-password/?token={token}'}
+            scheduler.add_job(forgotEmail,'date',run_date=timezone.now(), args=[emailContext])
             context["status"]   = True
             context["code"]     = status.HTTP_200_OK
             context["message"]  = "success"
