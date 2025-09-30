@@ -1,10 +1,10 @@
 from django.contrib import admin
-from .models import Merchant,Deal,Category,SubCategory
+from .models import Store,Deal,Category,SubCategory
 
 
-class MerchantAdmin(admin.ModelAdmin):
+class StoreAdmin(admin.ModelAdmin):
     list_display = ['id','user']
-admin.site.register(Merchant, MerchantAdmin)
+admin.site.register(Store, StoreAdmin)
 
 class DealAdmin(admin.ModelAdmin):
     list_display = ['id','user']
