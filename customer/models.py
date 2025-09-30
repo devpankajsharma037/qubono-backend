@@ -7,9 +7,17 @@ class Role(models.TextChoices):
     ADMIN     = "ADMIN",
     EMPLOYEE  = "EMPLOYEE",
 
+class GenderType(models.TextChoices):
+    MALE    = "MALE",
+    FEMALE  = "FEMALE",
+    OTHER   = "OTHER",
+
 class User(AbstractUser):
     id      = models.UUIDField(primary_key=True,default=uuid.uuid4,editable=False,unique=True)
     role    = models.CharField(max_length=20,choices=Role.choices,default=Role.EMPLOYEE)
+    meta    = models.JSONField(null=True,blank=True)
+    gender  = models.CharField(max_length=20,choices=GenderType.choices,blank=True,default="")
+    dob     = models.DateTimeField(null=True,blank=True)
 
 
 class Type(models.TextChoices):
