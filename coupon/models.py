@@ -90,3 +90,7 @@ class Coupon(CommonModel):
 
     class Meta:
         verbose_name_plural = 'Coupon'
+
+
+class CouponUsage(CommonModel):
+    pass
