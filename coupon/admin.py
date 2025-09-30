@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Store,Deal,Category,SubCategory,Coupon
+from .models import Store,Deal,Category,SubCategory,Coupon,Wishlist,Notification
 
 
 class StoreAdmin(admin.ModelAdmin):
@@ -21,3 +21,11 @@ admin.site.register(SubCategory, SubCategoryAdmin)
 class CouponAdmin(admin.ModelAdmin):
     list_display = ['id']
 admin.site.register(Coupon, CouponAdmin)
+
+class WishlistAdmin(admin.ModelAdmin):
+    list_display = ['id']
+admin.site.register(Wishlist, WishlistAdmin)
+
+class NotificationAdmin(admin.ModelAdmin):
+    list_display = ['id']
+admin.site.register(Notification, NotificationAdmin)
