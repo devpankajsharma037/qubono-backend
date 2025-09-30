@@ -1,5 +1,8 @@
 from django.contrib import admin
 from .models import User,Token
+from django.contrib.auth.models import Group
+
+admin.site.unregister(Group)
 
 class UserAdmin(admin.ModelAdmin):
     list_display    = ['id', 'first_name', 'last_name','email','role']
