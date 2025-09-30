@@ -91,6 +91,24 @@ class Coupon(CommonModel):
     class Meta:
         verbose_name_plural = 'Coupon'
 
+class Wishlist(CommonModel):
+    user    = models.ForeignKey(User,on_delete=models.CASCADE)
+    store   = models.ForeignKey(Store,on_delete=models.CASCADE)
 
-class CouponUsage(CommonModel):
-    pass
+    class Meta:
+        verbose_name_plural = 'Wishlist'
+
+class NotificationType(models.TextChoices):
+    COUPON_EXPIRY   = "COUPON_EXPIRY",
+    NEW_DEAL        = "NEW_DEAL",
+    PAYMENT         = "PAYMENT",
+
+class Notification(CommonModel):
+    user    = models.ForeignKey(User,on_delete=models.CASCADE)
+    title   = models.ForeignKey(Store,on_delete=models.CASCADE)
+    message = models.TextField(blank=True,null=True)
+    type    = models.CharField(max_length=50,choices=NotificationType.choices,default=NotificationType.NEW_DEAL)
+    is_read = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name_plural = 'Notification'
