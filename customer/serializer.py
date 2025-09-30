@@ -13,7 +13,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     
     def create(self, validated_data):
         validated_data['password']  = make_password(validated_data.get('password'))
-        validated_data['is_active'] = True
+        validated_data['is_active'] = False
         validated_data['username']  = validated_data.get('email')
         validated_data['role']      = 'EMPLOYEE'
         return super().create(validated_data)
@@ -106,4 +106,29 @@ class ResetPasswordSerializer(serializers.Serializer):
             attrs['user'] = userObj
         except Token.DoesNotExist:
             raise serializers.ValidationError({"token": "token is expired"}) 
+        return attrs
+    
+
+class VerifyAccountSerializer(serializers.Serializer):
+    token    = serializers.CharField(required=True)
+    email    = serializers.CharField(required=True)
+    def validate(self, attrs):
+        token = attrs.get('token')
+        try:
+            try:
+                tokenObj = Token.objects.get(token=token,type='VERFIY_ACCOUNT')
+            except Token.DoesNotExist:
+                raise serializers.ValidationError({"error": "token expired or not validate."})    
+
+            try:
+                userObj = User.objects.get(email=tokenObj.user.email)
+            except User.DoesNotExist:
+                raise serializers.ValidationError({"error": "token expired or not validate."})  
+            
+            tokenObj.delete()
+            userObj.is_active = True
+            userObj.save()
+            attrs['user'] = userObj
+        except User.DoesNotExist:
+            raise serializers.ValidationError({"error": "token expired or not validate."})       
         return attrs

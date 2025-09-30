@@ -15,6 +15,7 @@ class User(AbstractUser):
 class Type(models.TextChoices):
     OTP              = "OTP",
     FORGOT_PASSWORD  = "FORGOT_PASSWORD",
+    VERFIY_ACCOUNT   = "VERFIY_ACCOUNT"
 
 class Token(CommonModel):
     user    = models.ForeignKey(User, on_delete=models.CASCADE)
