@@ -4,3 +4,4 @@ djangorestframework==3.16.1
 djangorestframework_simplejwt==5.5.1
 pillow==11.3.0
 APScheduler==3.11.0
+python-dotenv==1.1.1
