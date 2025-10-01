@@ -8,6 +8,8 @@ from django.utils import timezone
 from django.conf import settings
 from core.utils.common import generateToken
 from .email.authEmailSender import verificationEmail,forgotEmail
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.permissions import IsAuthenticated
 from core.utils.scheduler import scheduler
 WEB_APP_URL        = settings.WEB_APP_URL
 
@@ -167,4 +169,21 @@ class UserAuthView(viewsets.ViewSet):
             context["status"] = False
             context["code"] = status.HTTP_500_INTERNAL_SERVER_ERROR
             context["message"] = "Something went wrong please try agin later!"
+            return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class ProfileView(viewsets.ViewSet):
+    authentication_classes  = [JWTAuthentication]
+    permission_classes      = [IsAuthenticated]
+
+    def getProfile(self,request):
+        context = {}
+        try:
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["message"]  = "success"
+            return Response(context, status=status.HTTP_200_OK)
+        except Exception as e:
+            context["status"]   = False
+            context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
+            context["message"]  = "Something went wrong please try agin later!"
             return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
