@@ -8,7 +8,7 @@ def sendEmail(subject, template_name, context, to_email):
     try:
         html_content = render_to_string(template_name, context)
         text_content = strip_tags(html_content)
-        from_email = f'Qubono.com <{os.getenv('DEFAULT_FROM_EMAIL')}>'
+        from_email = f'Qubono.com <{os.getenv("DEFAULT_FROM_EMAIL")}>'
         email = EmailMultiAlternatives(subject, text_content, from_email, [to_email])
         email.attach_alternative(html_content, "text/html")
         print(email.send())
