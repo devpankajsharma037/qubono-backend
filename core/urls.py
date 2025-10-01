@@ -11,7 +11,8 @@ admin.site.index_title = "Qubono"
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('customer.urls')),
+    path('api/v1/auth/', include('customer.urls')),
+    path('api/v1/coupon/', include('coupon.urls')),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -2,7 +2,61 @@ from django.db import models
 from customer.models import User
 from core.utils.commonModel import CommonModel
 from datetime import datetime
+from django.utils.text import slugify
+import string,random
 
+
+class Category(CommonModel):
+    name        = models.CharField(max_length=100)
+    note        = models.TextField(blank=True,null=True)
+    is_popular  = models.BooleanField(default=False)
+    is_premium  = models.BooleanField(default=False)
+    meta        = models.JSONField(blank=True,null=True)
+    user        = models.ForeignKey(User,on_delete=models.CASCADE)
+    slug        = models.SlugField(max_length=200,unique=True, blank=True)
+
+    class Meta:
+        verbose_name_plural = 'Category'
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base_slug = slugify(self.name) or "store"
+            slug = base_slug
+            if Category.objects.filter(slug=slug).exists():
+                random_str = ''.join(random.choices(string.ascii_lowercase + string.digits, k=5))
+                slug = f"{base_slug}-{random_str}"
+            self.slug = slug
+        super().save(*args, **kwargs)
+    
+    def __str__(self):
+        return f'{self.name} - {self.slug}'
+
+class SubCategory(CommonModel):
+    name        = models.CharField(max_length=100)
+    note        = models.TextField(blank=True,null=True)
+    is_popular  = models.BooleanField(default=False)
+    is_premium  = models.BooleanField(default=False)
+    meta        = models.JSONField(blank=True,null=True)
+    user        = models.ForeignKey(User,on_delete=models.CASCADE)
+    category    = models.ForeignKey(Category,on_delete=models.CASCADE)
+    slug        = models.SlugField(max_length=200,unique=True, blank=True)
+
+    class Meta:
+        verbose_name_plural = 'Sub Category'
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base_slug = slugify(self.name) or "store"
+            slug = base_slug
+            if SubCategory.objects.filter(slug=slug).exists():
+                random_str = ''.join(random.choices(string.ascii_lowercase + string.digits, k=5))
+                slug = f"{base_slug}-{random_str}"
+            self.slug = slug
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f'{self.name} - {self.slug}'
+    
 class Store(CommonModel):
     name        = models.CharField(max_length=100,blank=True,null=True)
     logo        = models.ImageField(upload_to="image/",blank=True,null=True)
@@ -13,10 +67,30 @@ class Store(CommonModel):
     is_premium  = models.BooleanField(default=False)
     user        = models.ForeignKey(User,on_delete=models.CASCADE)
     website_url = models.URLField(max_length=800, blank=True, null=True)
-    contact_email = models.EmailField(blank=True, null=True)
+    slug        = models.SlugField(max_length=200,unique=True, blank=True)
+    category    = models.ManyToManyField(Category)
+    sub_category    = models.ManyToManyField(SubCategory)
+    contact_email   = models.EmailField(blank=True, null=True)
 
     class Meta:
         verbose_name_plural = 'Store'
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base_slug = slugify(self.name) or "store"
+            slug = base_slug
+            if Store.objects.filter(slug=slug).exists():
+                random_str = ''.join(random.choices(string.ascii_lowercase + string.digits, k=5))
+                slug = f"{base_slug}-{random_str}"
+            self.slug = slug
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f'{self.name} - {self.slug}'
+
+class DiscountType(models.TextChoices):
+    FLAT        = "FLAT",
+    PERCTANGE   = "PERCTANGE",
 
 class Deal(CommonModel):
     name            = models.CharField(max_length=100)
@@ -28,6 +102,7 @@ class Deal(CommonModel):
     is_popular      = models.BooleanField(default=False)
     is_premium      = models.BooleanField(default=False)
     user            = models.ForeignKey(User,on_delete=models.CASCADE)
+    sub_category    = models.ManyToManyField(SubCategory)
     store           = models.ForeignKey(Store,on_delete=models.CASCADE)
     orignal_price   = models.FloatField()
     discount_price  = models.FloatField(blank=True,null=True)
@@ -35,54 +110,28 @@ class Deal(CommonModel):
     valid_until     = models.DateTimeField()
     term_conditions = models.TextField(blank=True,null=True)
 
+
     class Meta:
         verbose_name_plural = 'Deal'
-
-class Category(CommonModel):
-    name        = models.CharField(max_length=100)
-    note        = models.TextField(blank=True,null=True)
-    is_popular  = models.BooleanField(default=False)
-    is_premium  = models.BooleanField(default=False)
-    meta        = models.JSONField(blank=True,null=True)
-    store       = models.ForeignKey(Store,on_delete=models.CASCADE)
-
-    class Meta:
-        verbose_name_plural = 'Category'
-
-class SubCategory(CommonModel):
-    name        = models.CharField(max_length=100)
-    note        = models.TextField(blank=True,null=True)
-    is_popular  = models.BooleanField(default=False)
-    is_premium  = models.BooleanField(default=False)
-    meta        = models.JSONField(blank=True,null=True)
-    category    = models.ForeignKey(Category,on_delete=models.CASCADE)
-
-    class Meta:
-        verbose_name_plural = 'Sub Category'
-
-class DiscountType(models.TextChoices):
-    FLAT        = "FLAT",
-    PERCTANGE   = "PERCTANGE",
 
 class Coupon(CommonModel):
     name            = models.CharField(max_length=100)
     note            = models.TextField(blank=True,null=True)
     code            = models.CharField(max_length=100)
     validate_till   = models.DateTimeField()
-    sub_category_id = models.ForeignKey(SubCategory,on_delete=models.CASCADE)
+    sub_category    = models.ManyToManyField(SubCategory)
     user            = models.ForeignKey(User,on_delete=models.CASCADE)
     stock           = models.IntegerField(default=1)
     is_popular      = models.BooleanField(default=False)
     discount        = models.CharField(max_length=50)
     discount_type   = models.CharField(max_length=20,choices=DiscountType.choices,default=DiscountType.FLAT)
     is_premium      = models.BooleanField(default=False)
-    category        = models.ForeignKey(Category,on_delete=models.CASCADE)
     available_stock = models.IntegerField(default=1)
     meta            = models.JSONField(blank=True,null=True)
     icon            = models.ImageField(upload_to="image/",blank=True,null=True)
     banner          = models.ImageField(upload_to="image/",blank=True,null=True)
-    min_order_amount        = models.FloatField(blank=True,null=True)
-    max_discount_amount     = models.FloatField(blank=True,null=True)
+    min_order_amount    = models.FloatField(blank=True,null=True)
+    max_discount_amount = models.FloatField(blank=True,null=True)
     usage_limit     = models.IntegerField(default=1)
     usage_per_user  = models.IntegerField(default=1)
     term_conditions = models.TextField(blank=True,null=True)

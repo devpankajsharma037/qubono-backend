@@ -20,6 +20,9 @@ class User(AbstractUser):
     dob         = models.DateField(null=True,blank=True)
     is_delete   = models.BooleanField(default=False)
 
+    def __str__(self):
+        return f'{self.email} - {self.role}'
+
 class Type(models.TextChoices):
     OTP              = "OTP",
     FORGOT_PASSWORD  = "FORGOT_PASSWORD",
