@@ -49,6 +49,10 @@ class UserLoginSerializer(serializers.Serializer):
         if email and password:
             modelClass = self.Meta.model
 
+            userObj = modelClass.objects.filter(email=email,is_delete=True)
+            if userObj.exists():
+                raise serializers.ValidationError({'error':'This account has been deactivated. Please contact support for assistance.'})
+
             userObj = modelClass.objects.filter(email=email,is_active=False)
             if userObj.exists():
                 raise serializers.ValidationError({'error':'Account is not verified'})
