@@ -178,6 +178,11 @@ class ProfileView(viewsets.ViewSet):
     def getProfile(self,request):
         context = {}
         try:
+            user        = request.user
+            serializer  = UserInfoSerializer(user)
+            context['data'] = {
+                "info": serializer.data,
+            }
             context["status"]   = True
             context["code"]     = status.HTTP_200_OK
             context["message"]  = "success"
