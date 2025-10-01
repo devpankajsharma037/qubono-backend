@@ -157,3 +157,4 @@ coupon/migrations/__pycache__/*
 payment/migrations/__pycache__
 payment/migrations/__pycache__/*
 staticfiles
+static
