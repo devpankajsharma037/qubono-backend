@@ -100,6 +100,12 @@ class ResetPasswordSerializer(serializers.Serializer):
         try:
             tokenObj            = Token.objects.get(token=token,type='FORGOT_PASSWORD')
             userObj             = User.objects.get(email=tokenObj.user.email)
+
+            if check_password(password, userObj.password):
+                raise serializers.ValidationError(
+                    {"error": "New password cannot be the same as the old password"}
+                )
+            
             userObj.password    = make_password(password)
             tokenObj.delete()
             attrs['user'] = userObj
