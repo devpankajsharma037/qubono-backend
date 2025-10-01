@@ -144,4 +144,4 @@ class VerifyAccountSerializer(serializers.Serializer):
 class UpdateProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = "__all__"
+        exclude = ('password','is_staff','is_superuser','user_permissions','groups','is_active','email','username')
