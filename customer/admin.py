@@ -5,9 +5,9 @@ from django.contrib.auth.models import Group
 admin.site.unregister(Group)
 
 class UserAdmin(admin.ModelAdmin):
-    list_display    = ['id', 'first_name', 'last_name','email','role','is_active']
+    list_display    = ['id', 'first_name', 'last_name','email','role','is_active','is_delete']
     list_filter     = ['is_active','email','role']
-    search_fields   = ['first_name', 'last_name', 'email']
+    search_fields   = ['first_name', 'last_name', 'email' ,'role']
 admin.site.register(User, UserAdmin)
 
 class TokenAdmin(admin.ModelAdmin):

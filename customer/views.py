@@ -11,6 +11,7 @@ from .email.authEmailSender import verificationEmail,forgotEmail
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
 from core.utils.scheduler import scheduler
+from core.utils.decorator import checkAccountStatus
 WEB_APP_URL        = settings.WEB_APP_URL
 
 
@@ -175,6 +176,7 @@ class ProfileView(viewsets.ViewSet):
     authentication_classes  = [JWTAuthentication]
     permission_classes      = [IsAuthenticated]
 
+    @checkAccountStatus()
     def getProfile(self,request):
         context = {}
         try:
@@ -193,6 +195,7 @@ class ProfileView(viewsets.ViewSet):
             context["message"]  = "Something went wrong please try agin later!"
             return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
+    @checkAccountStatus()
     def updateProfile(self,request):
         context={}
         try:
