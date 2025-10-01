@@ -192,3 +192,30 @@ class ProfileView(viewsets.ViewSet):
             context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
             context["message"]  = "Something went wrong please try agin later!"
             return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    def updateProfile(self,request):
+        context={}
+        try:
+            userObj     = request.user
+            payLoad     = request.data
+            serializer  = UpdateProfileSerializer(userObj,data=payLoad,partial=True)
+            if not serializer.is_valid():
+                context['status']   = False
+                context['code']     = status.HTTP_400_BAD_REQUEST
+                context['message']  = serializer.errors
+                return Response(context, status=status.HTTP_400_BAD_REQUEST)
+            
+            user = serializer.save()
+            serializer  = UserInfoSerializer(user)
+            context['data'] = {
+                "info": serializer.data,
+            }
+            context['status']   = True 
+            context['code']     = status.HTTP_200_OK
+            context['message']  = "success"
+            return Response(context,status=status.HTTP_200_OK)
+        except Exception as e:
+            context['status']       = False
+            context['code']         = status.HTTP_500_INTERNAL_SERVER_ERROR
+            context['message']      = str(e) 
+            return Response(context,status=status.HTTP_500_INTERNAL_SERVER_ERROR)

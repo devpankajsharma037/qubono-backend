@@ -13,12 +13,12 @@ class GenderType(models.TextChoices):
     OTHER   = "OTHER",
 
 class User(AbstractUser):
-    id      = models.UUIDField(primary_key=True,default=uuid.uuid4,editable=False,unique=True)
-    role    = models.CharField(max_length=20,choices=Role.choices,default=Role.EMPLOYEE)
-    meta    = models.JSONField(null=True,blank=True)
-    gender  = models.CharField(max_length=20,choices=GenderType.choices,blank=True,default="")
-    dob     = models.DateTimeField(null=True,blank=True)
-
+    id          = models.UUIDField(primary_key=True,default=uuid.uuid4,editable=False,unique=True)
+    role        = models.CharField(max_length=20,choices=Role.choices,default=Role.EMPLOYEE)
+    meta        = models.JSONField(null=True,blank=True)
+    gender      = models.CharField(max_length=20,choices=GenderType.choices,blank=True,default="")
+    dob         = models.DateField(null=True,blank=True)
+    is_delete   = models.BooleanField(default=False)
 
 class Type(models.TextChoices):
     OTP              = "OTP",

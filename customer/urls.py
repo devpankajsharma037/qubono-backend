@@ -13,7 +13,7 @@ urlpatterns = [
     path('v1/reset-password/', UserAuthView.as_view({"post":"restPassword"}),name='reset-password'),
     path('v1/refresh/', TokenRefreshView.as_view(), name='refresh'),
 
-
-    #Profile View
+    # Profile View
     path('v1/profile/', ProfileView.as_view({"get":"getProfile"}),name='get-profile'),
+    path('v1/update-profile/', ProfileView.as_view({"patch":"updateProfile"}),name='update-profile'),
 ]

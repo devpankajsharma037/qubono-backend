@@ -136,3 +136,8 @@ class VerifyAccountSerializer(serializers.Serializer):
         except User.DoesNotExist:
             raise serializers.ValidationError({"error": "token expired or not validate."})       
         return attrs
+    
+class UpdateProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = "__all__"
