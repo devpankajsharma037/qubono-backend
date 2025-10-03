@@ -38,7 +38,7 @@ class StoreListSerializer(serializers.ModelSerializer):
     category        = CategorySerializer(many=True)
     class Meta:
         model = Store
-        exclude  = ("user",)
+        exclude  = ("user","sub_category",)
         read_only_fields = ["user"]
 
 class StoreUpdateValidationSerializer(serializers.Serializer):
@@ -150,10 +150,8 @@ class StoreListWithCouponSerializer(serializers.ModelSerializer):
             },
         ]
     
-
 class WishlistValidationSerializer(serializers.Serializer):
     store_id = serializers.CharField(required=True)
-
 
 class WishlistSerializer(serializers.ModelSerializer):
     class Meta:

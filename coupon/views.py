@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
 from core.utils.decorator import checkRole,checkAccountStatus
-
+from django.db.models import Q
 
 class StoreAdminView(viewsets.ViewSet):
     authentication_classes  = [JWTAuthentication]
@@ -38,8 +38,19 @@ class StoreAdminView(viewsets.ViewSet):
     def storeList(self,request):
         context = {}
         try:
-            userObj             = request.user
-            storeQueryObj       = Store.objects.filter(user=userObj)
+            categories    = request.query_params.getlist('category')
+            subCategories = request.query_params.getlist('sub_category')
+            filters = Q(is_active=True, is_deleted=False)
+            optional_filter = Q()
+            if subCategories:
+                optional_filter &= Q(sub_category__in=subCategories)
+            if categories:
+                optional_filter |= Q(sub_category__category__in=categories)
+
+            if optional_filter:
+                filters &= optional_filter
+
+            storeQueryObj = Store.objects.filter(filters).distinct()
             serializer          = StoreListSerializer(storeQueryObj,many=True)
             context["data"]     = serializer.data
             context["status"]   = True
@@ -142,21 +153,39 @@ class StoreAdminView(viewsets.ViewSet):
         
 class StoreUserView(viewsets.ViewSet):
 
-    def storeList(self,request):
+    def storeList(self, request):
         context = {}
         try:
-            storeQueryObj       = Store.objects.filter(is_active=True,is_deleted=False)
-            serializer          = StoreListSerializer(storeQueryObj,many=True)
+            categories    = request.query_params.getlist('category')
+            subCategories = request.query_params.getlist('sub_category')
+
+
+            filters = Q(is_active=True, is_deleted=False)
+
+            optional_filter = Q()
+            if subCategories:
+                optional_filter &= Q(sub_category__in=subCategories)
+            if categories:
+                optional_filter |= Q(sub_category__category__in=categories)
+
+            if optional_filter:
+                filters &= optional_filter
+
+            storeQueryObj = Store.objects.filter(filters).distinct()
+
+            serializer = StoreListSerializer(storeQueryObj, many=True)
             context["data"]     = serializer.data
             context["status"]   = True
             context["code"]     = status.HTTP_200_OK
             context["message"]  = "success"
             return Response(context, status=status.HTTP_200_OK)
+
         except Exception as e:
-            context["status"]   = False
-            context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
-            context["message"]  = "Something went wrong please try agin later!"
-            return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            context["data"]     = []
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["message"]  = "success"
+            return Response(context, status=status.HTTP_200_OK)
     
     def storeBySlug(self,request,slug):
         context = {}
@@ -180,7 +209,8 @@ class StoreUserView(viewsets.ViewSet):
             context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
             context["message"]  = "Something went wrong please try agin later!"
             return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+
+
 class WishList(viewsets.ViewSet):
     authentication_classes  = [JWTAuthentication]
     permission_classes      = [IsAuthenticated]

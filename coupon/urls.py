@@ -13,6 +13,7 @@ urlpatterns = [
     # User Store View
     path('store/list/', StoreUserView.as_view({"get":"storeList"}),name='app-store-list'),
     path('store/<slug>', StoreUserView.as_view({"get":"storeBySlug"}),name='app-store-by-slug'),
+    path('store/category/', StoreUserView.as_view({"get":"storeByCategory"}),name='app-store-by-category'),
 
     # User Wishlist View
     path('wishlist/', WishList.as_view({"patch":"wishListCreateRemove"}),name='wishlist-create-remove'),
