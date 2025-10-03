@@ -5,8 +5,7 @@ from .views import (StoreUserView,WishList)
 urlpatterns = [
 
     # Admin Routes
-    path('admin/',include('admin_route')),
-    
+    path('admin/',include('coupon.admin_route')),
 
     # User Store View
     path('store/list/', StoreUserView.as_view({"get":"storeList"}),name='app-store-list'),
