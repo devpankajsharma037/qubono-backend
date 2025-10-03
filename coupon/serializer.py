@@ -122,10 +122,30 @@ class StoreListWithCouponSerializer(serializers.ModelSerializer):
         return CategoryWithCouponSerializer(categories, many=True, context={"store": obj}).data
 
     def get_counts(self, obj):
-        return {
-            "DEAL": obj.coupons.filter(type=CouponType.DEAL).count(),
-            "COUPON": obj.coupons.filter(type=CouponType.COUPON).count(),
-            "GIFT_CARD": obj.coupons.filter(type=CouponType.GIFT_CARD).count(),
-            "CASHBACK": obj.coupons.filter(type=CouponType.CASHBACK).count(),
-            "ALL":obj.coupons.count(),
-        }
+        return [
+            {
+                "count":obj.coupons.filter(type=CouponType.DEAL).count(),
+                "name":"Deals",
+                "filter_value":CouponType.DEAL,
+            },
+            {
+                "count":obj.coupons.filter(type=CouponType.COUPON).count(),
+                "name":"coupons",
+                "filter_value":CouponType.COUPON,
+            },
+            {
+                "count":obj.coupons.filter(type=CouponType.GIFT_CARD).count(),
+                "name":"Gift cards",
+                "filter_value":CouponType.GIFT_CARD,
+            },
+            {
+                "count":obj.coupons.filter(type=CouponType.CASHBACK).count(),
+                "name":"Cash backs",
+                "filter_value":CouponType.CASHBACK,
+            },
+            {
+                "count":obj.coupons.count(),
+                "name":"all",
+                "filter_value":"ALL",
+            },
+        ]
