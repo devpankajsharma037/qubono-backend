@@ -139,10 +139,21 @@ class NotificationType(models.TextChoices):
 
 class Notification(CommonModel):
     user    = models.ForeignKey(User,on_delete=models.CASCADE)
-    title   = models.ForeignKey(Store,on_delete=models.CASCADE)
+    title   = models.CharField(max_length=100,blank=True,null=True)
     message = models.TextField(blank=True,null=True)
     type    = models.CharField(max_length=50,choices=NotificationType.choices,default=NotificationType.NEW_DEAL)
     is_read = models.BooleanField(default=False)
 
     class Meta:
         verbose_name_plural = 'Notification'
+
+class Rating(CommonModel):
+    user        = models.ForeignKey(User,on_delete=models.CASCADE)
+    store       = models.ForeignKey(Store,on_delete=models.CASCADE)
+    title       = models.CharField(max_length=100,blank=True,null=True)
+    message     = models.TextField(blank=True,null=True)
+    is_approved = models.BooleanField(default=False)
+    rating      = models.FloatField(default=0)
+
+    class Meta:
+        verbose_name_plural = 'Rating'

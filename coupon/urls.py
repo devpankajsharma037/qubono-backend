@@ -1,5 +1,5 @@
 from django.urls import path,include
-from .views import (StoreUserView,WishListView,CategoryView)
+from .views import (StoreUserView,WishListLoggedView,CategoryView,RatingView,RatingLoggedView)
 
 
 urlpatterns = [
@@ -16,9 +16,14 @@ urlpatterns = [
     path('store/coupon/', StoreUserView.as_view({"get":"storeCouponByFllter"}),name='app-store-coupon'),
 
     # User Wishlist View
-    path('wishlist/', WishListView.as_view({"patch":"wishListCreateRemove"}),name='wishlist-create-remove'),
-    path('wishlist/list/', WishListView.as_view({"get":"wishList"}),name='wishlist-list'),
+    path('wishlist/', WishListLoggedView.as_view({"patch":"wishListCreateRemove"}),name='wishlist-create-remove'),
+    path('wishlist/list/', WishListLoggedView.as_view({"get":"wishList"}),name='wishlist-list'),
 
     # User Category View
     path('category/', CategoryView.as_view({"get":"categoryListByFilter"}),name='category-list'),
+
+    # User Category View
+    path('store/rating/list/', RatingView.as_view({"get":"ratingListView"}),name='rating-list'),
+    path('store/rating/create/', RatingLoggedView.as_view({"get":"ratingCreate"}),name='rating-create'),
+
 ]

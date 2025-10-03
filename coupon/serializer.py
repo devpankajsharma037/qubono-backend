@@ -1,5 +1,7 @@
 from rest_framework import serializers
-from .models import (Store,SubCategory,Category,Coupon,CouponType,Wishlist)
+from .models import (Store,SubCategory,Category,Coupon,CouponType,Wishlist,Rating)
+from customer.models import User
+from django.db.models import Avg,Count
 
 class StoreSerializer(serializers.ModelSerializer):
     name        = serializers.CharField(required=True)
@@ -35,11 +37,12 @@ class CategorySerializer(serializers.ModelSerializer):
         exclude = ("user",)
 
 class StoreListSerializer(serializers.ModelSerializer):
-    # category    = CategorySerializer(many=True)
-    offers      = serializers.SerializerMethodField() 
+    offers  = serializers.SerializerMethodField() 
+    rating  = serializers.SerializerMethodField() 
+
     class Meta:
         model = Store
-        exclude  = ("user","sub_category",)
+        exclude  = ("user","sub_category","category",)
         read_only_fields = ["user"]
 
     def get_offers(self, obj):
@@ -49,6 +52,16 @@ class StoreListSerializer(serializers.ModelSerializer):
                 "name":"offers",
             },
         ]
+    
+    def get_rating(self, obj):
+        ratings = obj.rating_set.aggregate(
+            avg=Avg("rating"), 
+            total=Count("id")
+        )
+        return {
+            "average": ratings["avg"] or 0,
+            "count": ratings["total"] or 0
+        }
 
 class StoreUpdateValidationSerializer(serializers.Serializer):
     id          = serializers.UUIDField(required=True)
@@ -86,7 +99,8 @@ class StoreCouponSerializer(serializers.ModelSerializer):
         exclude  = ("code","sub_category","store","user",)
 
 class SubCategoryWithCouponSerializer(serializers.ModelSerializer):
-    count = serializers.SerializerMethodField()
+    count   = serializers.SerializerMethodField()
+     
     class Meta:
         model = SubCategory
         exclude = ("category","user")
@@ -121,6 +135,7 @@ class StoreListWithCouponSerializer(serializers.ModelSerializer):
     categories  = serializers.SerializerMethodField()
     all         = StoreCouponSerializer(many=True, source='coupons')
     counts      = serializers.SerializerMethodField() 
+    rating      = serializers.SerializerMethodField()
     
     class Meta:
         model = Store
@@ -159,10 +174,59 @@ class StoreListWithCouponSerializer(serializers.ModelSerializer):
             },
         ]
     
+    def get_rating(self, obj):
+        ratings = obj.rating_set.aggregate(
+            avg=Avg("rating"), 
+            total=Count("id")
+        )
+        return {
+            "average": ratings["avg"] or 0,
+            "count": ratings["total"] or 0
+        }
+    
 class WishlistValidationSerializer(serializers.Serializer):
     store_id = serializers.CharField(required=True)
 
 class WishlistSerializer(serializers.ModelSerializer):
     class Meta:
         model = Wishlist
+        fields = "__all__"
+
+class RatingListValidationSerializer(serializers.Serializer):
+    store = serializers.CharField(required=True)
+
+class UserInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ("first_name","last_name")
+
+class RatingSerializer(serializers.ModelSerializer):
+    user = UserInfoSerializer()
+    class Meta:
+        model = Rating
+        exclude = ("store","is_approved",)
+
+class RatingCreateValidationSerializer(serializers.Serializer):
+    store       = serializers.UUIDField(required=True)
+    title       = serializers.CharField(required=True,max_length=100)
+    rating      = serializers.FloatField(required=True)
+
+    class Meta:
+        model = Rating
+
+    def validate(self, attrs):
+        store    = attrs['store']
+        userObj  = self.context['user']
+        try:
+            isExist = self.Meta.model.objects.get(user=userObj,store=store)
+            if isExist:
+                raise serializers.ValidationError({"error": "You’ve already rated this store."})
+        except self.Meta.model.DoesNotExist as e:
+            pass
+
+        return super().validate(attrs)
+
+class RatingCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Rating
         fields = "__all__"

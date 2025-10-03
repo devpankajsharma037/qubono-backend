@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Store,Category,SubCategory,Coupon,Wishlist,Notification
+from .models import (Store,Category,SubCategory,Coupon,Wishlist,Notification,Rating)
 
 
 commanList = ['user', 'is_deleted', 'is_active']
@@ -27,3 +27,7 @@ admin.site.register(Wishlist, WishlistAdmin)
 class NotificationAdmin(admin.ModelAdmin):
     list_display = ['id'] + commanList
 admin.site.register(Notification, NotificationAdmin)
+
+class RatingAdmin(admin.ModelAdmin):
+    list_display = ['id'] + commanList
+admin.site.register(Rating, RatingAdmin)

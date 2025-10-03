@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from core.utils.decorator import checkRole,checkAccountStatus
 from django.db.models import Q
 
+# Admin View
 class StoreAdminView(viewsets.ViewSet):
     authentication_classes  = [JWTAuthentication]
     permission_classes      = [IsAuthenticated]
@@ -214,6 +215,8 @@ class StoreAdminView(viewsets.ViewSet):
             context["message"]  = "success"
             return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+# User Public View
 class StoreUserView(viewsets.ViewSet):
     def storeList(self, request):
         context = {}
@@ -243,6 +246,7 @@ class StoreUserView(viewsets.ViewSet):
             return Response(context, status=status.HTTP_200_OK)
 
         except Exception as e:
+            print(str(e))
             context["data"]     = []
             context["status"]   = True
             context["code"]     = status.HTTP_200_OK
@@ -316,7 +320,58 @@ class StoreUserView(viewsets.ViewSet):
             context["error"]    = str(e)
             return Response(context, status=status.HTTP_200_OK)
 
-class WishListView(viewsets.ViewSet):
+class CategoryView(viewsets.ViewSet):
+    serializer_class        = CategorySerializer
+
+    def categoryListByFilter(self,request):
+        context = {}
+        try:
+            categoryQuerySets   = Category.objects.filter(is_active=True,is_deleted=False)
+            serializer          = self.serializer_class(categoryQuerySets,many=True)
+            context['data']     = serializer.data
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["message"]  = "success"
+            return Response(context, status=status.HTTP_200_OK)
+        except Exception as e:
+            context["data"]     = []
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["message"]  = "success"
+            return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class RatingView(viewsets.ViewSet):
+    serializer_class        = RatingSerializer
+
+    def ratingListView(self,request):
+        context = {}
+        try:
+            payLoad             = request.data
+            serializer          = RatingListValidationSerializer(data=payLoad)
+            if not serializer.is_valid():
+                context["status"]   = False
+                context["code"]     = status.HTTP_400_BAD_REQUEST
+                context["message"]  = serializer.errors
+                return Response(context, status=status.HTTP_400_BAD_REQUEST)
+            
+            storeId             = payLoad['store']
+            ratingQuerySets     = Rating.objects.filter(store=storeId,is_approved=True,is_active=True,is_deleted=False)
+            serializer          = self.serializer_class(ratingQuerySets,many=True)
+            context['data']     = serializer.data
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["message"]  = "success"
+            return Response(context, status=status.HTTP_200_OK)
+        except Exception as e:
+            context["data"]     = []
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["message"]  = "success"
+            return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# User Logged View
+class WishListLoggedView(viewsets.ViewSet):
     authentication_classes  = [JWTAuthentication]
     permission_classes      = [IsAuthenticated]
     serializer_class        = WishlistSerializer
@@ -377,15 +432,35 @@ class WishListView(viewsets.ViewSet):
             context["message"]  = "Something went wrong please try agin later!"
             return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-class CategoryView(viewsets.ViewSet):
-    serializer_class        = CategorySerializer
+class RatingLoggedView(viewsets.ViewSet):
+    authentication_classes  = [JWTAuthentication]
+    permission_classes      = [IsAuthenticated]
+    serializer_class        = RatingCreateSerializer
 
-    def categoryListByFilter(self,request):
+    @checkAccountStatus()
+    def ratingCreate(self,request):
         context = {}
         try:
-            categoryQuerySets   = Category.objects.filter(is_active=True,is_deleted=False)
-            serializer          = self.serializer_class(categoryQuerySets,many=True)
-            context['data']     = serializer.data
+            payLoad                 = request.data
+            userObj                 = request.user
+            payLoad['user']         = userObj.id
+            payLoad['is_active']    =  True
+            serializer  = RatingCreateValidationSerializer(data=payLoad,context={"user":userObj})
+            if not serializer.is_valid():
+                context["status"]       = False
+                context["code"]         = status.HTTP_400_BAD_REQUEST
+                context["message"]      = serializer.errors
+                return Response(context, status=status.HTTP_400_BAD_REQUEST)
+            
+            serializer = self.serializer_class(data=payLoad)
+
+            if not serializer.is_valid():
+                context["status"]       = False
+                context["code"]         = status.HTTP_400_BAD_REQUEST
+                context["message"]      = serializer.errors
+                return Response(context, status=status.HTTP_400_BAD_REQUEST)
+            
+            serializer.save()
             context["status"]   = True
             context["code"]     = status.HTTP_200_OK
             context["message"]  = "success"
