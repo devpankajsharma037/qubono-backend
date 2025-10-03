@@ -26,13 +26,13 @@ class StoreSerializer(serializers.ModelSerializer):
 class SubCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = SubCategory
-        fields = "__all__"
+        exclude = ("user","category",)
 
 class CategorySerializer(serializers.ModelSerializer):
     sub_categorys = SubCategorySerializer(many=True, read_only=True)
     class Meta:
         model = Category
-        fields = "__all__"
+        exclude = ("user",)
 
 class StoreListSerializer(serializers.ModelSerializer):
     # category    = CategorySerializer(many=True)
