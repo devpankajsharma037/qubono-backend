@@ -24,6 +24,6 @@ urlpatterns = [
 
     # User Category View
     path('store/rating/list/', RatingView.as_view({"get":"ratingListView"}),name='rating-list'),
-    path('store/rating/create/', RatingLoggedView.as_view({"get":"ratingCreate"}),name='rating-create'),
+    path('store/rating/create/', RatingLoggedView.as_view({"post":"ratingCreate"}),name='rating-create'),
 
 ]
