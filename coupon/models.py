@@ -93,10 +93,10 @@ class DiscountType(models.TextChoices):
     PERCTANGE   = "PERCTANGE",
 
 class CouponType(models.TextChoices):
-    DEAL        = "DEAL",
-    COUPON      = "COUPON",
-    GIFT_CARD   = "GIFT_CARD",
-    CASHBACK    = "CASHBACK",
+    DEAL        = "DEAL", "DEAL"
+    COUPON      = "COUPON", "COUPON"
+    GIFT_CARD   = "GIFT_CARD", "GIFT_CARD"
+    CASHBACK    = "CASHBACK", "CASHBACK"
 
 class Coupon(CommonModel):
     name            = models.CharField(max_length=100)

@@ -10,10 +10,16 @@ urlpatterns = [
     path('admin/store/update/', StoreAdminView.as_view({"patch":"updateStore"}),name='store-update'),
     path('admin/store/<slug>', StoreAdminView.as_view({"get":"storeBySlug","delete":"deleteStore"}),name='store-by-slug'),
 
+    # Admin Store Coupon View
+    path('admin/store/coupon/', StoreAdminView.as_view({"get":"storeCouponByFllter"}),name='store-coupon'),
+
     # User Store View
     path('store/list/', StoreUserView.as_view({"get":"storeList"}),name='app-store-list'),
     path('store/<slug>', StoreUserView.as_view({"get":"storeBySlug"}),name='app-store-by-slug'),
     path('store/category/', StoreUserView.as_view({"get":"storeByCategory"}),name='app-store-by-category'),
+
+    # User Store Coupon View
+    path('store/coupon/', StoreUserView.as_view({"get":"storeCouponByFllter"}),name='app-store-coupon'),
 
     # User Wishlist View
     path('wishlist/', WishList.as_view({"patch":"wishListCreateRemove"}),name='wishlist-create-remove'),

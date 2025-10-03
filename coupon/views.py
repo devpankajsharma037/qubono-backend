@@ -40,7 +40,7 @@ class StoreAdminView(viewsets.ViewSet):
         try:
             categories    = request.query_params.getlist('category')
             subCategories = request.query_params.getlist('sub_category')
-            filters = Q(is_active=True, is_deleted=False)
+            filters = Q()
             optional_filter = Q()
             if subCategories:
                 optional_filter &= Q(sub_category__in=subCategories)
@@ -150,9 +150,52 @@ class StoreAdminView(viewsets.ViewSet):
             context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
             context["message"]  = "Something went wrong please try agin later!"
             return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    @checkRole()
+    def storeCouponByFllter(self,request):
+        context = {}
+        try:
+            payLoad       = request.data
+            userObj       = request.user
+            categories    = payLoad.get('category', None)
+            subCategories = payLoad.get('sub_category', None)
+            store         = payLoad.get('store', None)
+            couponType    = payLoad.get('type', "ALL")
+
+            filters         = Q(user=userObj)
+            optional_filter = Q()
+            
+            if subCategories:
+                optional_filter &= Q(sub_category__in=subCategories)
+
+            if categories:
+                optional_filter |= Q(sub_category__category__in=categories)
+
+            if optional_filter:
+                filters &= optional_filter
+
+            if couponType and couponType != "ALL":
+                filters &= Q(type=couponType)
+            
+            if store:
+                filters &= Q(store=store)
+
+            storeQueryObj       = Coupon.objects.filter(filters).distinct()
+            serializer          = StoreCouponSerializer(storeQueryObj, many=True)
+            context["data"]     = serializer.data
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["message"]  = "success"
+            return Response(context, status=status.HTTP_200_OK)
+        except Exception as e:
+            context["data"]     = []
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["message"]  = "success"
+            context["error"]    = str(e)
+            return Response(context, status=status.HTTP_200_OK)
         
 class StoreUserView(viewsets.ViewSet):
-
     def storeList(self, request):
         context = {}
         try:
@@ -210,6 +253,49 @@ class StoreUserView(viewsets.ViewSet):
             context["message"]  = "Something went wrong please try agin later!"
             return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    def storeCouponByFllter(self,request):
+        context = {}
+        try:
+            payLoad       = request.data
+            
+            categories    = payLoad.get('category', None)
+            subCategories = payLoad.get('sub_category', None)
+            store         = payLoad.get('store', None)
+            couponType    = payLoad.get('type', "ALL")
+
+            filters = Q(is_active=True, is_deleted=False)
+
+            optional_filter = Q()
+
+            if subCategories:
+                optional_filter &= Q(sub_category__in=subCategories)
+
+            if categories:
+                optional_filter |= Q(sub_category__category__in=categories)
+
+            if optional_filter:
+                filters &= optional_filter
+
+            if couponType and couponType != "ALL":
+                filters &= Q(type=couponType)
+            
+            if store:
+                filters &= Q(store=store)
+
+            storeQueryObj = Coupon.objects.filter(filters).distinct()
+            serializer = StoreCouponSerializer(storeQueryObj, many=True)
+            context["data"]     = serializer.data
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["message"]  = "success"
+            return Response(context, status=status.HTTP_200_OK)
+        except Exception as e:
+            context["data"]     = []
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["message"]  = "success"
+            context["error"]    = str(e)
+            return Response(context, status=status.HTTP_200_OK)
 
 class WishList(viewsets.ViewSet):
     authentication_classes  = [JWTAuthentication]

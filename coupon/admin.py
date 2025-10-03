@@ -17,7 +17,7 @@ class SubCategoryAdmin(admin.ModelAdmin):
 admin.site.register(SubCategory, SubCategoryAdmin)
 
 class CouponAdmin(admin.ModelAdmin):
-    list_display = ['id'] + commanList
+    list_display = ['id',"type","store"] + commanList
 admin.site.register(Coupon, CouponAdmin)
 
 class WishlistAdmin(admin.ModelAdmin):
