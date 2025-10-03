@@ -1,17 +1,12 @@
-from django.urls import path
-from .views import (StoreAdminView,StoreUserView,WishList)
+from django.urls import path,include
+from .views import (StoreUserView,WishList)
 
 
 urlpatterns = [
 
-    # Admin Store View
-    path('admin/store/create/', StoreAdminView.as_view({"post":"createStore"}),name='store-create'),
-    path('admin/store/list/', StoreAdminView.as_view({"get":"storeList"}),name='store-list'),
-    path('admin/store/update/', StoreAdminView.as_view({"patch":"updateStore"}),name='store-update'),
-    path('admin/store/<slug>', StoreAdminView.as_view({"get":"storeBySlug","delete":"deleteStore"}),name='store-by-slug'),
-
-    # Admin Store Coupon View
-    path('admin/store/coupon/', StoreAdminView.as_view({"get":"storeCouponByFllter"}),name='store-coupon'),
+    # Admin Routes
+    path('admin/',include('admin_route')),
+    
 
     # User Store View
     path('store/list/', StoreUserView.as_view({"get":"storeList"}),name='app-store-list'),
