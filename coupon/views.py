@@ -194,7 +194,26 @@ class StoreAdminView(viewsets.ViewSet):
             context["message"]  = "success"
             context["error"]    = str(e)
             return Response(context, status=status.HTTP_200_OK)
-        
+
+    @checkRole()
+    def categoryListByFilter(self,request):
+        context = {}
+        try:
+            userObj       = request.user
+            categoryQuerySets   = Category.objects.filter(user=userObj)
+            serializer          = CategorySerializer(categoryQuerySets,many=True)
+            context['data']     = serializer.data
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["message"]  = "success"
+            return Response(context, status=status.HTTP_200_OK)
+        except Exception as e:
+            context["data"]     = []
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["message"]  = "success"
+            return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 class StoreUserView(viewsets.ViewSet):
     def storeList(self, request):
         context = {}

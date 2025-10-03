@@ -10,4 +10,7 @@ urlpatterns = [
 
     # Admin Store Coupon View
     path('store/coupon/',   StoreAdminView.as_view({"get":"storeCouponByFllter"}),name='store-coupon'),
+
+    # Admin Category View
+    path('store/category/',   StoreAdminView.as_view({"get":"categoryListByFilter"}),name='store-category'),
 ]
