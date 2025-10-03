@@ -176,7 +176,23 @@ class StoreUserView(viewsets.ViewSet):
             context["message"]  = "success"
             return Response(context, status=status.HTTP_200_OK)
         except Exception as e:
-            print(str(e))
+            context["status"]   = False
+            context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
+            context["message"]  = "Something went wrong please try agin later!"
+            return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class UserStoreWishList(viewsets.ViewSet):
+    authentication_classes  = [JWTAuthentication]
+    permission_classes      = [IsAuthenticated]
+
+    def wishList(self,request):
+        context = {}
+        try:
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["message"]  = "success"
+            return Response(context, status=status.HTTP_200_OK)
+        except Exception as e:
             context["status"]   = False
             context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
             context["message"]  = "Something went wrong please try agin later!"
