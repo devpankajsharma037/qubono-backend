@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Store,SubCategory,Category,Coupon
+from .models import Store,SubCategory,Category,Coupon,CouponType
 
 class StoreSerializer(serializers.ModelSerializer):
     name        = serializers.CharField(required=True)
@@ -77,12 +77,12 @@ class StoreCouponSerializer(serializers.ModelSerializer):
         exclude  = ("code","sub_category","store","user",)
 
 class SubCategoryWithCouponSerializer(serializers.ModelSerializer):
-    coupon_count = serializers.SerializerMethodField()
+    count = serializers.SerializerMethodField()
     class Meta:
         model = SubCategory
         exclude = ("category","user")
 
-    def get_coupon_count(self, obj):
+    def get_count(self, obj):
         store = self.context.get("store")
         if not store:
             return 0
@@ -90,7 +90,7 @@ class SubCategoryWithCouponSerializer(serializers.ModelSerializer):
     
 class CategoryWithCouponSerializer(serializers.ModelSerializer):
     sub_categorys   = serializers.SerializerMethodField()
-    coupon_count    = serializers.SerializerMethodField()
+    count           = serializers.SerializerMethodField()
     class Meta:
         model = Category
         exclude = ("user",)
@@ -102,15 +102,16 @@ class CategoryWithCouponSerializer(serializers.ModelSerializer):
         subcats = SubCategory.objects.filter(category=obj,coupon__store=store).distinct()
         return SubCategoryWithCouponSerializer(subcats, many=True, context={"store": store}).data
 
-    def get_coupon_count(self, obj):
+    def get_count(self, obj):
         store = self.context.get("store")
         if not store:
             return 0
         return Coupon.objects.filter(store=store, sub_category__category=obj).count()
     
 class StoreListWithCouponSerializer(serializers.ModelSerializer):
-    categories      = serializers.SerializerMethodField()
-    coupon_count    = serializers.SerializerMethodField()
+    categories  = serializers.SerializerMethodField()
+    all         = StoreCouponSerializer(many=True, source='coupons')
+    counts      = serializers.SerializerMethodField() 
     
     class Meta:
         model = Store
@@ -119,6 +120,12 @@ class StoreListWithCouponSerializer(serializers.ModelSerializer):
     def get_categories(self, obj):
         categories = Category.objects.filter(sub_categorys__coupon__store=obj).distinct()
         return CategoryWithCouponSerializer(categories, many=True, context={"store": obj}).data
-    
-    def get_coupon_count(self, obj):
-        return obj.coupons.count()
+
+    def get_counts(self, obj):
+        return {
+            "DEAL": obj.coupons.filter(type=CouponType.DEAL).count(),
+            "COUPON": obj.coupons.filter(type=CouponType.COUPON).count(),
+            "GIFT_CARD": obj.coupons.filter(type=CouponType.GIFT_CARD).count(),
+            "CASHBACK": obj.coupons.filter(type=CouponType.CASHBACK).count(),
+            "ALL":obj.coupons.count(),
+        }
