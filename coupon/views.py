@@ -4,7 +4,7 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
-from core.utils.decorator import checkRole
+from core.utils.decorator import checkRole,checkAccountStatus
 
 
 class StoreAdminView(viewsets.ViewSet):
@@ -181,11 +181,12 @@ class StoreUserView(viewsets.ViewSet):
             context["message"]  = "Something went wrong please try agin later!"
             return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-class UserStoreWishList(viewsets.ViewSet):
+class WishList(viewsets.ViewSet):
     authentication_classes  = [JWTAuthentication]
     permission_classes      = [IsAuthenticated]
     serializer_class        = WishlistSerializer
     
+    @checkAccountStatus()
     def wishListCreateRemove(self,request):
         context = {}
         try:
@@ -224,6 +225,7 @@ class UserStoreWishList(viewsets.ViewSet):
             context["message"]  = "Something went wrong please try agin later!"
             return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    @checkAccountStatus()
     def wishList(self,request):
         context = {}
         try:

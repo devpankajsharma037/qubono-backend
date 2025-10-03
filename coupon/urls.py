@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import (StoreAdminView,StoreUserView,UserStoreWishList)
+from .views import (StoreAdminView,StoreUserView,WishList)
 
 
 urlpatterns = [
@@ -15,6 +15,6 @@ urlpatterns = [
     path('store/<slug>', StoreUserView.as_view({"get":"storeBySlug"}),name='app-store-by-slug'),
 
     # User Wishlist View
-    path('wishlist/', UserStoreWishList.as_view({"patch":"wishListCreateRemove"}),name='wish-list'),
-    path('wishlist/list/', UserStoreWishList.as_view({"get":"wishList"}),name='wish-list'),
+    path('wishlist/', WishList.as_view({"patch":"wishListCreateRemove"}),name='wishlist-create-remove'),
+    path('wishlist/list/', WishList.as_view({"get":"wishList"}),name='wishlist-list'),
 ]
