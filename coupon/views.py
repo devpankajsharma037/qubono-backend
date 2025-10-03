@@ -47,7 +47,6 @@ class StoreAdminView(viewsets.ViewSet):
             context["message"]  = "success"
             return Response(context, status=status.HTTP_200_OK)
         except Exception as e:
-            print(str(e))
             context["status"]   = False
             context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
             context["message"]  = "Something went wrong please try agin later!"
@@ -136,7 +135,47 @@ class StoreAdminView(viewsets.ViewSet):
             context["message"]  = "success"
             return Response(context, status=status.HTTP_200_OK)
         except Exception as e:
-            print(str(e))
+            context["status"]   = False
+            context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
+            context["message"]  = "Something went wrong please try agin later!"
+            return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class StoreUserView(viewsets.ViewSet):
+    
+    def storeList(self,request):
+        context = {}
+        try:
+            storeQueryObj       = Store.objects.filter(is_active=True,is_deleted=False)
+            serializer          = StoreListSerializer(storeQueryObj,many=True)
+            context["data"]     = serializer.data
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["message"]  = "success"
+            return Response(context, status=status.HTTP_200_OK)
+        except Exception as e:
+            context["status"]   = False
+            context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
+            context["message"]  = "Something went wrong please try agin later!"
+            return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    def storeBySlug(self,request,slug):
+        context = {}
+        try:
+            try:
+                storeQueryObj   = Store.objects.get(slug=slug,is_active=True,is_deleted=False)
+            except Store.DoesNotExist as e:
+                context["status"]   = False
+                context["code"]     = status.HTTP_400_BAD_REQUEST
+                context["message"]  = "Store not found!"
+                return Response(context, status=status.HTTP_400_BAD_REQUEST)
+        
+            serializer          = StoreListSerializer(storeQueryObj)
+            context["data"]     = serializer.data
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["message"]  = "success"
+            return Response(context, status=status.HTTP_200_OK)
+        except Exception as e:
             context["status"]   = False
             context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
             context["message"]  = "Something went wrong please try agin later!"
