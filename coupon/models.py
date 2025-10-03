@@ -38,7 +38,7 @@ class SubCategory(CommonModel):
     is_premium  = models.BooleanField(default=False)
     meta        = models.JSONField(blank=True,null=True)
     user        = models.ForeignKey(User,on_delete=models.CASCADE)
-    category    = models.ForeignKey(Category,on_delete=models.CASCADE)
+    category    = models.ForeignKey(Category,on_delete=models.CASCADE,related_name='sub_categorys')
     slug        = models.SlugField(max_length=200,unique=True, blank=True)
 
     class Meta:
@@ -135,7 +135,7 @@ class Coupon(CommonModel):
     usage_limit     = models.IntegerField(default=1)
     usage_per_user  = models.IntegerField(default=1)
     term_conditions = models.TextField(blank=True,null=True)
-    store           = models.ForeignKey(Store,on_delete=models.CASCADE)
+    store           = models.ForeignKey(Store,on_delete=models.CASCADE,related_name="coupons")
 
     class Meta:
         verbose_name_plural = 'Coupon'

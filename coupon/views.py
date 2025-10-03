@@ -65,7 +65,7 @@ class StoreAdminView(viewsets.ViewSet):
                 context["message"]  = "Store not found!"
                 return Response(context, status=status.HTTP_400_BAD_REQUEST)
         
-            serializer          = StoreListSerializer(storeQueryObj)
+            serializer          = StoreListWithCouponSerializer(storeQueryObj,context={"store": storeQueryObj, "request": request})
             context["data"]     = serializer.data
             context["status"]   = True
             context["code"]     = status.HTTP_200_OK
@@ -141,7 +141,7 @@ class StoreAdminView(viewsets.ViewSet):
             return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
 class StoreUserView(viewsets.ViewSet):
-    
+
     def storeList(self,request):
         context = {}
         try:
@@ -169,13 +169,14 @@ class StoreUserView(viewsets.ViewSet):
                 context["message"]  = "Store not found!"
                 return Response(context, status=status.HTTP_400_BAD_REQUEST)
         
-            serializer          = StoreListSerializer(storeQueryObj)
+            serializer          = StoreListWithCouponSerializer(storeQueryObj,context={"store": storeQueryObj, "request": request})
             context["data"]     = serializer.data
             context["status"]   = True
             context["code"]     = status.HTTP_200_OK
             context["message"]  = "success"
             return Response(context, status=status.HTTP_200_OK)
         except Exception as e:
+            print(str(e))
             context["status"]   = False
             context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
             context["message"]  = "Something went wrong please try agin later!"
