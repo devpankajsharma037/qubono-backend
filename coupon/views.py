@@ -184,10 +184,53 @@ class StoreUserView(viewsets.ViewSet):
 class UserStoreWishList(viewsets.ViewSet):
     authentication_classes  = [JWTAuthentication]
     permission_classes      = [IsAuthenticated]
+    serializer_class        = WishlistSerializer
+    
+    def wishListCreateRemove(self,request):
+        context = {}
+        try:
+            payLoad                 = request.data
+            userObj                 = request.user
+            payLoad['user']         = userObj.id
+            payLoad['is_active']    = True
+            serializer = WishlistValidationSerializer(data=payLoad)
+            if not serializer.is_valid():
+                context["status"]       = False
+                context["code"]         = status.HTTP_400_BAD_REQUEST
+                context["message"]      = serializer.errors
+                return Response(context, status=status.HTTP_400_BAD_REQUEST)
+
+            storeId = payLoad['store_id']
+            try:
+                Wishlist.objects.get(user=userObj,store=storeId).delete()
+            except:
+                payLoad['store'] = storeId
+                serializer = self.serializer_class(data=payLoad)
+                if not serializer.is_valid():
+                    context["status"]       = False
+                    context["code"]         = status.HTTP_400_BAD_REQUEST
+                    context["message"]      = serializer.errors
+                    return Response(context, status=status.HTTP_400_BAD_REQUEST)
+                
+                serializer.save()
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["message"]  = "success"
+            return Response(context, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(str(e))
+            context["status"]   = False
+            context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
+            context["message"]  = "Something went wrong please try agin later!"
+            return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def wishList(self,request):
         context = {}
         try:
+            userObj     = request.user
+            wishListQuerySets   = Wishlist.objects.filter(user=userObj)
+            serializer          = self.serializer_class(wishListQuerySets,many=True)
+            context["data"]     = serializer.data
             context["status"]   = True
             context["code"]     = status.HTTP_200_OK
             context["message"]  = "success"

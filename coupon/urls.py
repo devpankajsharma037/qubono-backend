@@ -14,6 +14,7 @@ urlpatterns = [
     path('store/list/', StoreUserView.as_view({"get":"storeList"}),name='app-store-list'),
     path('store/<slug>', StoreUserView.as_view({"get":"storeBySlug"}),name='app-store-by-slug'),
 
-    # User Store Wishlist View
-    path('wishlist/', UserStoreWishList.as_view({"get":"wishList"}),name='wish-list'),
+    # User Wishlist View
+    path('wishlist/', UserStoreWishList.as_view({"patch":"wishListCreateRemove"}),name='wish-list'),
+    path('wishlist/list/', UserStoreWishList.as_view({"get":"wishList"}),name='wish-list'),
 ]

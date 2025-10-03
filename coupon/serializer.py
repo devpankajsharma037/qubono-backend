@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Store,SubCategory,Category,Coupon,CouponType
+from .models import (Store,SubCategory,Category,Coupon,CouponType,Wishlist)
 
 class StoreSerializer(serializers.ModelSerializer):
     name        = serializers.CharField(required=True)
@@ -149,3 +149,13 @@ class StoreListWithCouponSerializer(serializers.ModelSerializer):
                 "filter_value":"ALL",
             },
         ]
+    
+
+class WishlistValidationSerializer(serializers.Serializer):
+    store_id = serializers.CharField(required=True)
+
+
+class WishlistSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Wishlist
+        fields = "__all__"
