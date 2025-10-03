@@ -35,11 +35,20 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class StoreListSerializer(serializers.ModelSerializer):
-    category        = CategorySerializer(many=True)
+    # category    = CategorySerializer(many=True)
+    offers      = serializers.SerializerMethodField() 
     class Meta:
         model = Store
         exclude  = ("user","sub_category",)
         read_only_fields = ["user"]
+
+    def get_offers(self, obj):
+        return [
+            {
+                "count":obj.coupons.count(),
+                "name":"offers",
+            },
+        ]
 
 class StoreUpdateValidationSerializer(serializers.Serializer):
     id          = serializers.UUIDField(required=True)

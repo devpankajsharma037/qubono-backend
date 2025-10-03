@@ -1,5 +1,5 @@
 from django.urls import path,include
-from .views import (StoreAdminView,StoreUserView,WishList)
+from .views import (StoreAdminView)
 
 
 urlpatterns = [

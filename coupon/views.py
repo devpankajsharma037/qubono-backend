@@ -297,7 +297,7 @@ class StoreUserView(viewsets.ViewSet):
             context["error"]    = str(e)
             return Response(context, status=status.HTTP_200_OK)
 
-class WishList(viewsets.ViewSet):
+class WishListView(viewsets.ViewSet):
     authentication_classes  = [JWTAuthentication]
     permission_classes      = [IsAuthenticated]
     serializer_class        = WishlistSerializer
@@ -335,7 +335,6 @@ class WishList(viewsets.ViewSet):
             context["message"]  = "success"
             return Response(context, status=status.HTTP_200_OK)
         except Exception as e:
-            print(str(e))
             context["status"]   = False
             context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
             context["message"]  = "Something went wrong please try agin later!"
@@ -357,4 +356,24 @@ class WishList(viewsets.ViewSet):
             context["status"]   = False
             context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
             context["message"]  = "Something went wrong please try agin later!"
+            return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class CategoryView(viewsets.ViewSet):
+    serializer_class        = CategorySerializer
+
+    def categoryListByFilter(self,request):
+        context = {}
+        try:
+            categoryQuerySets   = Category.objects.filter(is_active=True,is_deleted=False)
+            serializer          = self.serializer_class(categoryQuerySets,many=True)
+            context['data']     = serializer.data
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["message"]  = "success"
+            return Response(context, status=status.HTTP_200_OK)
+        except Exception as e:
+            context["data"]     = []
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["message"]  = "success"
             return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
