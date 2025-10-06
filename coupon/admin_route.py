@@ -1,5 +1,5 @@
 from django.urls import path,include
-from .views import (StoreAdminView)
+from .views import (StoreAdminView,CategoryAdminView)
 
 
 urlpatterns = [
@@ -12,5 +12,5 @@ urlpatterns = [
     path('store/coupon/',   StoreAdminView.as_view({"get":"storeCouponByFllter"}),name='store-coupon'),
 
     # Admin Category View
-    path('store/category/',   StoreAdminView.as_view({"get":"categoryListByFilter"}),name='store-category'),
+    path('store/category/',   CategoryAdminView.as_view({"get":"categoryListByFilter"}),name='store-category'),
 ]
