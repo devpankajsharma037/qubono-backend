@@ -222,10 +222,7 @@ class CategoryAdminView(viewsets.ViewSet):
     def categoryCreate(self,request):
         context = {}
         try:
-            userObj       = request.user
-            categoryQuerySets   = Category.objects.filter(user=userObj)
-            serializer          = CategorySerializer(categoryQuerySets,many=True)
-            context['data']     = serializer.data
+            userObj             = request.user
             context["status"]   = True
             context["code"]     = status.HTTP_200_OK
             context["message"]  = "success"
