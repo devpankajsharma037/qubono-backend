@@ -26,6 +26,7 @@ class Payment(CommonModel):
     status          = models.CharField(max_length=20,choices=PaymentType.choices,default=PaymentType.PENDING)
     user            = models.ForeignKey(User, on_delete=models.CASCADE)
     payment_id      = models.CharField(max_length=50,null=True,blank=True)
+    order_id        = models.CharField(max_length=50,null=True,blank=True)
     invoice_id      = models.CharField(max_length=150,null=True,blank=True)
     meta            = models.JSONField(null=True,blank=True)
     transaction_date= models.DateTimeField(default=datetime.now)
@@ -37,6 +38,7 @@ class Order(CommonModel):
     coupon          = models.ForeignKey(Coupon, on_delete=models.CASCADE)
     payment         = models.ForeignKey(Payment, on_delete=models.CASCADE)
     order_id        = models.CharField(max_length=50)
+    user            = models.ForeignKey(User, on_delete=models.CASCADE)
     total_amount    = models.FloatField(max_length=50,null=True,blank=True)
     discount_amount = models.FloatField(max_length=50,null=True,blank=True)
     final_amount    = models.FloatField(max_length=50,null=True,blank=True)
@@ -57,7 +59,6 @@ class CouponUsage(CommonModel):
     user                = models.ForeignKey(User, on_delete=models.CASCADE)
     order               = models.ForeignKey(Order, on_delete=models.CASCADE)
     used_at             = models.DateTimeField(default=datetime.now)
-    discount_applied    = models.FloatField(max_length=50,null=True,blank=True)
     meta                = models.JSONField(null=True,blank=True)
 
     class Meta:
