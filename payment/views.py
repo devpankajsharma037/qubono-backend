@@ -37,8 +37,9 @@ class PaymentViewset(viewsets.ViewSet):
                 else:
                     if coupon.discount_type == 'FLAT':
                         final_amount = (coupon.min_order_amount - float(coupon.discount))
-                    elif coupon.discount_type == 'PERCTANGE':
+                    elif coupon.discount_type == 'PERCENTAGE':
                         discount_value = (coupon.min_order_amount * float(coupon.discount)) / 100
+                        print(discount_value)
                         final_amount = coupon.min_order_amount - discount_value       
             else:
                 final_amount = coupon.min_order_amount
@@ -103,7 +104,7 @@ class PaymentViewset(viewsets.ViewSet):
 
 
             if payment_status == "SUCCESS":   
-                total_amount = final_amount   = payment.price
+                
                 discount_amount = 0.0
 
                 coupon          = Coupon.objects.get(id=coupon_id)
@@ -111,6 +112,7 @@ class PaymentViewset(viewsets.ViewSet):
                 coupon.available_stock = max(coupon.available_stock - 1, 0)
                 coupon.save()
 
+                total_amount = final_amount   = coupon.min_order_amount
                 if coupon.discount:
                     discount = float(coupon.discount)
                     if coupon.discount_type == 'FLAT':
@@ -119,7 +121,6 @@ class PaymentViewset(viewsets.ViewSet):
                         discount_amount = (discount / 100) * total_amount
 
                     final_amount = total_amount - discount_amount
-
                 # Create Order
                 order = Order.objects.create(
                     coupon=coupon,

@@ -90,7 +90,7 @@ class Store(CommonModel):
 
 class DiscountType(models.TextChoices):
     FLAT        = "FLAT",
-    PERCTANGE   = "PERCTANGE",
+    PERCENTAGE   = "PERCENTAGE",
 
 class CouponType(models.TextChoices):
     DEAL        = "DEAL", "DEAL"
