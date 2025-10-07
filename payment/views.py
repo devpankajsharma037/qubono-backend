@@ -39,7 +39,6 @@ class PaymentViewset(viewsets.ViewSet):
                         final_amount = (coupon.min_order_amount - float(coupon.discount))
                     elif coupon.discount_type == 'PERCENTAGE':
                         discount_value = (coupon.min_order_amount * float(coupon.discount)) / 100
-                        print(discount_value)
                         final_amount = coupon.min_order_amount - discount_value       
             else:
                 final_amount = coupon.min_order_amount
