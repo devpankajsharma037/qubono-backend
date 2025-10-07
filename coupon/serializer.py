@@ -230,3 +230,14 @@ class RatingCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rating
         fields = "__all__"
+
+class OrderStoreSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Store
+        fields  = ("website_url","name","slug","logo","banner",)
+
+class OrderCouponSerializer(serializers.ModelSerializer):
+    store = OrderStoreSerializer()
+    class Meta:
+        model = Coupon
+        fields  = ("code","name","note","validate_till","icon","banner","term_conditions","type","store",)

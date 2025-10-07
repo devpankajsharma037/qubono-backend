@@ -7,9 +7,9 @@ import string, random
 from django.utils import timezone
 
 def generateOrderId():
-    date_str    = now().strftime("%Y%m%d")
+    date_str    = timezone.now().strftime("%Y%m%d")
     random_str  = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
-    unique_num  = str(int(datetime.timestamp(now())))[-5:]
+    unique_num  = str(int(datetime.timestamp(timezone.now())))[-5:]
     return f"{date_str}{random_str}{unique_num}"
 
 class PaymentType(models.TextChoices):

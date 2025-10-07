@@ -5,21 +5,22 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
 import razorpay
-from django.utils import timezone
 import os
+from core.utils.decorator import checkAccountStatus
 
-client = razorpay.Client(auth=(os.getenv("key_id"), os.getenv("key_secret")))
+client = razorpay.Client(auth=(os.getenv("RAZORPAY_KEY_ID"), os.getenv("RAZORPAY_KEY_SECRET")))
 
 
 class PaymentViewset(viewsets.ViewSet):
     authentication_classes  = [JWTAuthentication]
     permission_classes      = [IsAuthenticated]
 
+    @checkAccountStatus()
     def createOrder(self,request):
         context = {}
         try:
-            payload = request.data
-            userId  = request.user.id
+            payload     = request.data
+            userId      = request.user.id
             serializer  = PaymentValidateSerializer(data=payload)
             if not serializer.is_valid():
                 context["status"]   = False
@@ -29,18 +30,6 @@ class PaymentViewset(viewsets.ViewSet):
             
             coupon              = serializer.validated_data['coupon']
             discount_applied    = serializer.validated_data['discount_applied']
-
-            if coupon.available_stock <= 0:
-                    context["status"] = False
-                    context["code"] = status.HTTP_400_BAD_REQUEST
-                    context["message"] = "This coupon is no longer available or has reached its usage limit."
-                    return Response(context, status=status.HTTP_400_BAD_REQUEST)
-
-            if coupon.validate_till < timezone.now():
-                context["status"] = False
-                context["code"] = status.HTTP_400_BAD_REQUEST
-                context["message"] = "This coupon has expired."
-                return Response(context, status=status.HTTP_400_BAD_REQUEST)
 
             if discount_applied:
                 if not coupon.discount:
@@ -54,14 +43,9 @@ class PaymentViewset(viewsets.ViewSet):
             else:
                 final_amount = coupon.min_order_amount
 
-
-            context['status']       = True
-            context["code"]         = status.HTTP_200_OK
-            context["message"]      = "success"
-
             payment = {
                 'price': final_amount,
-                'platform_name':payload.get('platform_name','razorpay'),
+                'platform_name':"razorpay",
                 'user':userId,
                 'is_active':True    
             }
@@ -79,7 +63,6 @@ class PaymentViewset(viewsets.ViewSet):
             payment_payload = {
                 "amount": final_amount*100,
                 "currency": "INR",
-                "receipt": "receipt#1",
                 "notes": {
                     "user": str(userId),
                     "payment_id": str(paymentObj.id),
@@ -97,12 +80,13 @@ class PaymentViewset(viewsets.ViewSet):
             context["data"]         = data
             return Response(context, status=status.HTTP_200_OK)
         except Exception as e:
-            print(str(e))
             context["status"]   = False
             context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
             context["message"]  = "Something went wrong please try agin later!"
+            context["error"]    = str(e)
             return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    @checkAccountStatus()
     def paymentStatus(self,request):
         context ={}
         try:
@@ -110,93 +94,110 @@ class PaymentViewset(viewsets.ViewSet):
             razorpay_order_id   = payload.get("order_id")
             razorpay_payment_id = payload.get("payment_id",'')
             payment_status      = payload.get("status")
+            coupon_id           = payload.get("coupon_id")
+    
             payment = Payment.objects.get(order_id=razorpay_order_id)
             payment.status = payment_status
             payment.payment_id = razorpay_payment_id
             payment.save()
 
-            context['code']     = 490
-            if payment_status == "SUCCESS":
-                 
-                total_amount = payment.price
+
+            if payment_status == "SUCCESS":   
+                total_amount = final_amount   = payment.price
                 discount_amount = 0.0
-                coupon = None
 
-            # Handle coupon
-                coupon_id = payload.get("coupon_id")
-                if coupon_id:
-                    try:
-                        coupon = Coupon.objects.get(id=coupon_id)
-                        # Check minimum order amount
-                        if total_amount >= coupon.min_order_amount:
-                            if coupon.discount_type == 'FLAT':
-                                discount_amount = coupon.discount
-                            elif coupon.discount_type == 'PERCENTAGE':
-                                discount_amount = (coupon.discount / 100) * total_amount
-                        else:
-                            coupon = None
-                            discount_amount = 0.0
-                    except Coupon.DoesNotExist:
-                        coupon = None
-                        discount_amount = 0.0
+                coupon          = Coupon.objects.get(id=coupon_id)
 
-            # Ensure discount_amount does not exceed total_amount
-                discount_amount = min(discount_amount, total_amount)
-                final_amount = total_amount - discount_amount
+                coupon.available_stock = max(coupon.available_stock - 1, 0)
+                coupon.save()
+
+                if coupon.discount:
+                    if coupon.discount_type == 'FLAT':
+                        discount_amount = coupon.discount
+                    elif coupon.discount_type == 'PERCENTAGE':
+                        discount_amount = (coupon.discount / 100) * total_amount
+
+                    final_amount = total_amount - discount_amount
+
                 # Create Order
                 order = Order.objects.create(
-                        coupon=coupon,
-                        payment=payment,
-                        user=request.user,
-                        total_amount=total_amount,
-                        discount_amount=discount_amount,
-                        final_amount=final_amount,
-                        delivery_address=payload.get("delivery_address", ""),
-                        meta={
-                            "razorpay_order_id": razorpay_order_id,
-                            "razorpay_payment_id": razorpay_payment_id
-                        }
-                )
-                
-
-                # Step 4: Record Coupon Usage
-                if coupon:
-                    CouponUsage.objects.create(
-                        coupon=coupon,
-                        user=request.user,
-                        order=order,
-                        meta={"used_at": timezone.now().isoformat()}
-                    )
-
-                    coupon.available_stock = max(coupon.available_stock - 1, 0)
-                    coupon.save()
-
-                    context["message"] = "Payment successful, order created"
-                    context["order"] = {
-                        "order_id": order.order_id,
-                        "final_amount": order.final_amount,
-                        "payment_id": payment.payment_id,
-                        "status": payment.status
+                    coupon=coupon,
+                    payment=payment,
+                    user=request.user,
+                    total_amount=total_amount,
+                    discount_amount=discount_amount,
+                    final_amount=final_amount,
+                    is_active=True,
+                    meta={
+                        "razorpay_order_id": razorpay_order_id,
+                        "razorpay_payment_id": razorpay_payment_id
                     }
-
+                )
+            
+                if coupon:
+                    CouponUsage.objects.create(coupon=coupon,user=request.user,order=order,is_active=True,)
+                    
+                context["code"]     = status.HTTP_200_OK
+                context["message"] = "success"
             elif payment_status.upper() == "FAILED":
-                context["message"] = "Payment failed"
+                context["message"]  = "Payment failed"
+                context["code"]     = status.HTTP_400_BAD_REQUEST
             else:
-                context["message"] = "Payment status updated"
+                context['code']    = 490
+                context["message"] = "Payment canceled"
 
-            context["status"] = True
-            context["code"] = status.HTTP_200_OK
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["payment_status"]   = payment_status
             return Response(context, status=status.HTTP_200_OK)
-
         except Exception as e:
-            print(str(e))
-            context["status"] = False
-            context["code"] = status.HTTP_500_INTERNAL_SERVER_ERROR
-            context["message"] = "Something went wrong, please try again later!"
+            context["status"]   = False
+            context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
+            context["message"]  = "Something went wrong, please try again later!"
+            context["error"]    = str(e)
             return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    @checkAccountStatus()
+    def paymentList(self,request):
+        context = {}
+        try:
+            userObj             = request.user
+            paymentQuerySets    = Payment.objects.filter(user=userObj)
+            serializer          = PaymentListSerializer(paymentQuerySets,many=True)
+            context["data"]     = serializer.data
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["message"]  = "success"
+            return Response(context, status=status.HTTP_200_OK)
+        except Exception as e:
+            context["status"]   = False
+            context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
+            context["message"]  = "Something went wrong please try agin later!"
+            context["error"]    = str(e)
+            return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+class UserOrderViewset(viewsets.ViewSet):
+    authentication_classes  = [JWTAuthentication]
+    permission_classes      = [IsAuthenticated]
 
+    @checkAccountStatus()
+    def userOrderList(self,request):
+        context = {}
+        try:
+            userObj         = request.user
+            orderQuerySets  = Order.objects.filter(user=userObj)
+            serializer      = OrderSerializer(orderQuerySets,many=True)
+            context["data"]     = serializer.data
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["message"]  = "success"
+            return Response(context, status=status.HTTP_200_OK)
+        except Exception as e:
+            context["status"]   = False
+            context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
+            context["message"]  = "Something went wrong please try agin later!"
+            context["error"]    = str(e)
+            return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 
