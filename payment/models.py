@@ -4,7 +4,7 @@ from core.utils.commonModel import CommonModel
 from datetime import datetime
 from coupon.models import Coupon
 import string, random
-from django.utils.timezone import now
+from django.utils import timezone
 
 def generateOrderId():
     date_str    = now().strftime("%Y%m%d")

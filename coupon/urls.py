@@ -1,5 +1,5 @@
 from django.urls import path,include
-from .views import (StoreUserView,WishListLoggedView,CategoryView,RatingView,RatingLoggedView)
+from .views import (StoreUserView,WishListLoggedView,CategoryView,RatingView,RatingLoggedView,CategoryAdminView)
 
 
 urlpatterns = [

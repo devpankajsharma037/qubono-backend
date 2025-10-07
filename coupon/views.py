@@ -196,12 +196,15 @@ class StoreAdminView(viewsets.ViewSet):
             context["error"]    = str(e)
             return Response(context, status=status.HTTP_200_OK)
 
+class CategoryAdminView(viewsets.ViewSet):
+    authentication_classes  = [JWTAuthentication]
+    permission_classes      = [IsAuthenticated]
+
     @checkRole()
     def categoryListByFilter(self,request):
         context = {}
         try:
-            userObj       = request.user
-            categoryQuerySets   = Category.objects.filter(user=userObj)
+            categoryQuerySets   = Category.objects.all()
             serializer          = CategorySerializer(categoryQuerySets,many=True)
             context['data']     = serializer.data
             context["status"]   = True
@@ -214,6 +217,23 @@ class StoreAdminView(viewsets.ViewSet):
             context["code"]     = status.HTTP_200_OK
             context["message"]  = "success"
             return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    @checkRole()
+    def categoryCreate(self,request):
+        context = {}
+        try:
+            userObj             = request.user
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["message"]  = "success"
+            return Response(context, status=status.HTTP_200_OK)
+        except Exception as e:
+            context["data"]     = []
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["message"]  = "success"
+            return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 
 # User Public View
