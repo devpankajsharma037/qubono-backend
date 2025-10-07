@@ -2,6 +2,7 @@ from rest_framework import serializers
 from .models import (Store,SubCategory,Category,Coupon,CouponType,Wishlist,Rating)
 from customer.models import User
 from django.db.models import Avg,Count
+from payment.models import Order
 
 class StoreSerializer(serializers.ModelSerializer):
     name        = serializers.CharField(required=True)
@@ -217,6 +218,12 @@ class RatingCreateValidationSerializer(serializers.Serializer):
     def validate(self, attrs):
         store    = attrs['store']
         userObj  = self.context['user']
+
+        try:
+            Order.objects.get(user=userObj,coupon__store=store)
+        except Order.DoesNotExist as e:
+            raise serializers.ValidationError({"error": "Please purchase the first"})
+
         try:
             isExist = self.Meta.model.objects.get(user=userObj,store=store)
             if isExist:
