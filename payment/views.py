@@ -112,10 +112,11 @@ class PaymentViewset(viewsets.ViewSet):
                 coupon.save()
 
                 if coupon.discount:
+                    discount = float(coupon.discount)
                     if coupon.discount_type == 'FLAT':
-                        discount_amount = coupon.discount
+                        discount_amount = discount
                     elif coupon.discount_type == 'PERCENTAGE':
-                        discount_amount = (coupon.discount / 100) * total_amount
+                        discount_amount = (discount / 100) * total_amount
 
                     final_amount = total_amount - discount_amount
 
@@ -198,8 +199,6 @@ class UserOrderViewset(viewsets.ViewSet):
             context["message"]  = "Something went wrong please try agin later!"
             context["error"]    = str(e)
             return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
 
        
 
