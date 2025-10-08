@@ -222,22 +222,21 @@ class CategoryAdminView(viewsets.ViewSet):
     def categoryCreate(self,request):
         context = {}
         try:
-            userObj             = request.user
             serializer = CategoryValidateSerializer(data=request.data, context={'request': request})
             if not serializer.is_valid():
                 context["status"]   = True
                 context["code"]     = status.HTTP_400_BAD_REQUEST
                 context["message"]  = serializer.errors
                 return Response(context, status=status.HTTP_400_BAD_REQUEST)
+
             category = serializer.save()
-            
             context["status"]   = True
             context["code"]     = status.HTTP_200_OK
             context["message"]  = "success"
-            context['data']     = serializer.data
+            context['data']     = CategorySerializer(category).data
             return Response(context, status=status.HTTP_200_OK)
+
         except Exception as e:
-          
             context["status"]   = False
             context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
             context["message"]  = str(e)
@@ -247,14 +246,13 @@ class CategoryAdminView(viewsets.ViewSet):
     def categoryUpdate(self,request,pk=None):
         context = {}
         try:
-            userObj             = request.user
             try:
                 category = Category.objects.get(pk=pk, user=request.user)
             except Category.DoesNotExist:
                 context["status"]   = True
                 context["code"]     = status.HTTP_404_NOT_FOUND
                 context["error"]  = "Category not found."
-                return Response(context, status=status.HTTP_404_NOT_FOUNDT)
+                return Response(context, status=status.HTTP_404_NOT_FOUND)
         
             serializer = CategoryValidateSerializer(category, data=request.data, partial=True, context={'request': request})
             if not serializer.is_valid():
@@ -262,15 +260,15 @@ class CategoryAdminView(viewsets.ViewSet):
                 context["code"]     = status.HTTP_400_BAD_REQUEST
                 context["message"]  = serializer.errors
                 return Response(context, status=status.HTTP_400_BAD_REQUEST)
+
             category = serializer.save()
-            
             context["status"]   = True
             context["code"]     = status.HTTP_200_OK
             context["message"]  = "success"
-            context['data']     = serializer.data
+            context['data']     = CategorySerializer(category).data
             return Response(context, status=status.HTTP_200_OK)
+
         except Exception as e:
-          
             context["status"]   = False
             context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
             context["message"]  = str(e)
@@ -280,9 +278,8 @@ class CategoryAdminView(viewsets.ViewSet):
     def categoryDelete(self,request,pk=None):
         context = {}
         try:
-            userObj             = request.user
             try:
-                category = Category.objects.get(pk=pk, user=userObj)
+                category = Category.objects.get(pk=pk, user=request.user)
             except Category.DoesNotExist:
                 context["status"]   = True
                 context["code"]     = status.HTTP_404_NOT_FOUND
@@ -452,7 +449,6 @@ class RatingView(viewsets.ViewSet):
             context["code"]     = status.HTTP_200_OK
             context["message"]  = "success"
             return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
 # User Logged View
 class WishListLoggedView(viewsets.ViewSet):
