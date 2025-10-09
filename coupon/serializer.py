@@ -256,7 +256,7 @@ class CategoryValidateSerializer(serializers.Serializer):
         if Category.objects.filter(name__iexact=normalized_value).exists():
             raise serializers.ValidationError({"error":"Category with this name already exists."})
         return value
-
+      
 class CategoryUpdateValidateSerializer(serializers.Serializer):
     name        = serializers.CharField(required=True)
     id          = serializers.UUIDField(required=True)
