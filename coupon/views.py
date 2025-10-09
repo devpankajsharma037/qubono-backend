@@ -246,8 +246,16 @@ class CategoryAdminView(viewsets.ViewSet):
     def categoryUpdate(self,request,pk=None):
         context = {}
         try:
+            payload = request.data
+            category_id = payload.get("id")
+
+            if not category_id:
+                context["status"] = False
+                context["code"] = status.HTTP_400_BAD_REQUEST
+                context["message"] = "Category ID is required in the payload."
+                return Response(context, status=status.HTTP_400_BAD_REQUEST)
             try:
-                category = Category.objects.get(pk=pk, user=request.user)
+                category = Category.objects.get(pk=category_id, user=request.user)
             except Category.DoesNotExist:
                 context["status"]   = True
                 context["code"]     = status.HTTP_404_NOT_FOUND
