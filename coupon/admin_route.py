@@ -13,7 +13,8 @@ urlpatterns = [
     path('store/coupon/',   StoreAdminView.as_view({"get":"storeCouponByFllter"}),name='store-coupon'),
 
     # Category View
-    path('store/category/',   CategoryAdminView.as_view({"get":"categoryListByFilter"}),name='store-category'),
+    path('store/category/list/',   CategoryAdminView.as_view({"get":"categoryListByFilter"}),name='store-category'),
+    path('store/category/<uuid>/',   CategoryAdminView.as_view({"get":"singleCategory"}),name='store-category-single'),
     path('store/category/create/',   CategoryAdminView.as_view({"post":"categoryCreate"}),name='store-category-create'),
     path('store/category/update/',   CategoryAdminView.as_view({"patch":"categoryUpdate"}),name='store-category-update'),
     path('store/category/delete/<uuid>/',   CategoryAdminView.as_view({"delete":"categoryDelete"}),name='store-category-delete'),

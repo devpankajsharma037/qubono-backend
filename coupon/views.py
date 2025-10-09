@@ -224,6 +224,7 @@ class CategoryAdminView(viewsets.ViewSet):
         try:
             payLoad         = request.data
             payLoad['user'] = request.user.id
+            payLoad['is_active']    = True
             serializer  = CategoryValidateSerializer(data=payLoad)
             if not serializer.is_valid():
                 context["status"]   = False
@@ -231,7 +232,7 @@ class CategoryAdminView(viewsets.ViewSet):
                 context["message"]  = serializer.errors
                 return Response(context, status=status.HTTP_400_BAD_REQUEST)
 
-            serializer = CategorySerializer(data=payLoad)
+            serializer = CategorySaveSerializer(data=payLoad)
             if not serializer.is_valid():
                 context["status"]   = False
                 context["code"]     = status.HTTP_400_BAD_REQUEST
@@ -274,7 +275,7 @@ class CategoryAdminView(viewsets.ViewSet):
                 context["message"]  = "Category not found."
                 return Response(context, status=status.HTTP_404_NOT_FOUND)
         
-            serializer = CategorySerializer(category,data=payLoad,partial=True)
+            serializer = CategorySaveSerializer(category,data=payLoad,partial=True)
             if not serializer.is_valid():
                 context["status"]   = False
                 context["code"]     = status.HTTP_400_BAD_REQUEST
@@ -317,7 +318,31 @@ class CategoryAdminView(viewsets.ViewSet):
             context["message"]  = "Something went wrong please try agin later!"
             context["error"]    = str(e)
             return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
+    
+    @checkRole()
+    def singleCategory(self,request,uuid):
+        context = {}
+        try:
+            try:
+                categoryObj = Category.objects.get(pk=uuid)
+            except Category.DoesNotExist:
+                context["status"]   = True
+                context["code"]     = status.HTTP_404_NOT_FOUND
+                context["error"]    = "Category not found."
+                return Response(context, status=status.HTTP_404_NOT_FOUND)
+    
+            serializer          = CategorySerializer(categoryObj)
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["message"]  = "success"
+            context["data"]     = serializer.data
+            return Response(context, status=status.HTTP_200_OK)
+        except Exception as e:
+            context["status"]   = False
+            context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
+            context["message"]  = "Something went wrong please try agin later!"
+            context["error"]    = str(e)
+            return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 # User Public View
 class StoreUserView(viewsets.ViewSet):
     def storeList(self, request):

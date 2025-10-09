@@ -261,7 +261,7 @@ class CategoryUpdateValidateSerializer(serializers.Serializer):
     name        = serializers.CharField(required=True)
     id          = serializers.UUIDField(required=True)
 
-class CategorySerializer(serializers.ModelSerializer):
+class CategorySaveSerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = "__all__"
