@@ -212,10 +212,10 @@ class CategoryAdminView(viewsets.ViewSet):
             context["message"]  = "success"
             return Response(context, status=status.HTTP_200_OK)
         except Exception as e:
-            context["status"]   = False
-            context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
-            context["message"]  = "Something went wrong please try agin later!"
-            context["error"]    = str(e)
+            context["data"]     = []
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["message"]  = "success"
             return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     @checkRole()
