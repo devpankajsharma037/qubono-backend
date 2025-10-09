@@ -249,22 +249,19 @@ class OrderCouponSerializer(serializers.ModelSerializer):
         model = Coupon
         fields  = ("code","name","note","validate_till","icon","banner","term_conditions","type","store",)
 
-
 class CategoryValidateSerializer(serializers.Serializer):
-    name        = serializers.CharField(required=True, max_length=100)
-    note        = serializers.CharField(required=False, max_length=500)
+    name        = serializers.CharField(required=True)
     def validate_name(self, value):
-        """Ensure name is unique (case-insensitive)."""
-        if Category.objects.filter(name__iexact=value).exists():
-            raise serializers.ValidationError("Category with this name already exists.")
+        normalized_value = value.strip().lower()
+        if Category.objects.filter(name__iexact=normalized_value).exists():
+            raise serializers.ValidationError({"error":"Category with this name already exists."})
         return value
 
-    def create(self, validated_data):
-        user = self.context['request'].user
-        return Category.objects.create(user=user, **validated_data)
+class CategoryUpdateValidateSerializer(serializers.Serializer):
+    name        = serializers.CharField(required=True)
+    id          = serializers.UUIDField(required=True)
 
-    def update(self, instance, validated_data):
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-        instance.save()
-        return instance
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = "__all__"

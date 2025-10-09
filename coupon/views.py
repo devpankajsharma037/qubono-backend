@@ -212,86 +212,98 @@ class CategoryAdminView(viewsets.ViewSet):
             context["message"]  = "success"
             return Response(context, status=status.HTTP_200_OK)
         except Exception as e:
-            context["data"]     = []
-            context["status"]   = True
-            context["code"]     = status.HTTP_200_OK
-            context["message"]  = "success"
+            context["status"]   = False
+            context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
+            context["message"]  = "Something went wrong please try agin later!"
+            context["error"]    = str(e)
             return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     @checkRole()
     def categoryCreate(self,request):
         context = {}
         try:
-            serializer = CategoryValidateSerializer(data=request.data, context={'request': request})
+            payLoad         = request.data
+            payLoad['user'] = request.user.id
+            serializer  = CategoryValidateSerializer(data=payLoad)
             if not serializer.is_valid():
-                context["status"]   = True
+                context["status"]   = False
                 context["code"]     = status.HTTP_400_BAD_REQUEST
                 context["message"]  = serializer.errors
                 return Response(context, status=status.HTTP_400_BAD_REQUEST)
 
-            category = serializer.save()
+            serializer = CategorySerializer(data=payLoad)
+            if not serializer.is_valid():
+                context["status"]   = False
+                context["code"]     = status.HTTP_400_BAD_REQUEST
+                context["message"]  = serializer.errors
+                return Response(context, status=status.HTTP_400_BAD_REQUEST)
+
+            serializer.save()
             context["status"]   = True
             context["code"]     = status.HTTP_200_OK
             context["message"]  = "success"
-            context['data']     = CategorySerializer(category).data
             return Response(context, status=status.HTTP_200_OK)
 
         except Exception as e:
             context["status"]   = False
             context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
-            context["message"]  = str(e)
+            context["message"]  = "Something went wrong please try agin later!"
+            context["error"]    = str(e)
             return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @checkRole()
-    def categoryUpdate(self,request,pk=None):
+    def categoryUpdate(self,request):
         context = {}
         try:
-            payload = request.data
-            category_id = payload.get("id")
-
-            if not category_id:
-                context["status"] = False
-                context["code"] = status.HTTP_400_BAD_REQUEST
-                context["message"] = "Category ID is required in the payload."
+            payLoad     = request.data
+            payLoad = request.data
+            serializer = CategoryUpdateValidateSerializer(data=payLoad)
+            if not serializer.is_valid():
+                context["status"]   = False
+                context["code"]     = status.HTTP_400_BAD_REQUEST
+                context["message"]  = serializer.errors
                 return Response(context, status=status.HTTP_400_BAD_REQUEST)
+
+            categoryId = payLoad.get("id")
+
             try:
-                category = Category.objects.get(pk=category_id, user=request.user)
+                category = Category.objects.get(pk=categoryId)
             except Category.DoesNotExist:
-                context["status"]   = True
+                context["status"]   = False
                 context["code"]     = status.HTTP_404_NOT_FOUND
-                context["error"]  = "Category not found."
+                context["message"]  = "Category not found."
                 return Response(context, status=status.HTTP_404_NOT_FOUND)
         
-            serializer = CategoryValidateSerializer(category, data=request.data, partial=True, context={'request': request})
+            serializer = CategorySerializer(category,data=payLoad,partial=True)
             if not serializer.is_valid():
-                context["status"]   = True
+                context["status"]   = False
                 context["code"]     = status.HTTP_400_BAD_REQUEST
                 context["message"]  = serializer.errors
                 return Response(context, status=status.HTTP_400_BAD_REQUEST)
 
-            category = serializer.save()
+            serializer.save()
             context["status"]   = True
             context["code"]     = status.HTTP_200_OK
             context["message"]  = "success"
-            context['data']     = CategorySerializer(category).data
             return Response(context, status=status.HTTP_200_OK)
 
         except Exception as e:
             context["status"]   = False
             context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
-            context["message"]  = str(e)
+            context["message"]  = "Something went wrong please try agin later!"
+            context["error"]    = str(e)
             return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @checkRole()
-    def categoryDelete(self,request,pk=None):
+    def categoryDelete(self,request,uuid=None):
         context = {}
         try:
             try:
-                category = Category.objects.get(pk=pk, user=request.user)
+                category = Category.objects.get(pk=uuid)
             except Category.DoesNotExist:
                 context["status"]   = True
                 context["code"]     = status.HTTP_404_NOT_FOUND
-                context["error"]  = "Category not found."
+                context["error"]    = "Category not found."
                 return Response(context, status=status.HTTP_404_NOT_FOUND)
     
             category.delete()
@@ -302,7 +314,8 @@ class CategoryAdminView(viewsets.ViewSet):
         except Exception as e:
             context["status"]   = False
             context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
-            context["error"]  = str(e)
+            context["message"]  = "Something went wrong please try agin later!"
+            context["error"]    = str(e)
             return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 # User Public View
