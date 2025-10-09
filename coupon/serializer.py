@@ -269,7 +269,7 @@ class CategorySaveSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        exclude = ('password','user_permissions','groups')
+        exclude = ('password','user_permissions','groups','is_active',)
 
 class UserUpdateValidationSerializer(serializers.Serializer):
     is_active   = serializers.BooleanField(required=True)
@@ -278,4 +278,4 @@ class UserUpdateValidationSerializer(serializers.Serializer):
 class UserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ("is_active",)
+        fields = ("is_delete",)

@@ -362,11 +362,11 @@ class UserAdminView(viewsets.ViewSet):
             if isActiveUser:
 
                 if isActiveUser == 'false':
-                    isActiveUser = False
-                else:
                     isActiveUser = True
+                else:
+                    isActiveUser = False
 
-                optional_filter &= Q(is_active=isActiveUser)
+                optional_filter &= Q(is_delete=isActiveUser)
 
             if optional_filter:
                 filters &= optional_filter
@@ -398,6 +398,8 @@ class UserAdminView(viewsets.ViewSet):
                 return Response(context, status=status.HTTP_400_BAD_REQUEST)
             
             userId      = payLoad['id']
+
+            payLoad['is_delete'] = payLoad['is_active']
             userObj     = User.objects.get(id=userId)
             serializer  = UserUpdateSerializer(userObj,data=payLoad,partial=True)
             if not serializer.is_valid():
