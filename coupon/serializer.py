@@ -270,3 +270,12 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         exclude = ('password','user_permissions','groups')
+
+class UserUpdateValidationSerializer(serializers.Serializer):
+    is_active   = serializers.BooleanField(required=True)
+    id          = serializers.UUIDField(required=True)
+
+class UserUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ("is_active",)

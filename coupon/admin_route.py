@@ -21,4 +21,5 @@ urlpatterns = [
 
     # User View
     path('store/user/list/',   UserAdminView.as_view({"get":"userListByFilter"}),name='store-user'),
+    path('store/user/update/',   UserAdminView.as_view({"patch":"updateUser"}),name='store-user-update'),
 ]

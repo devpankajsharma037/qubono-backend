@@ -385,6 +385,40 @@ class UserAdminView(viewsets.ViewSet):
             context["error"]    = str(e)
             return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    @checkRole()
+    def updateUser(self,request):
+        context = {}
+        try:
+            payLoad     = request.data
+            serializer  = UserUpdateValidationSerializer(data=payLoad)
+            if not serializer.is_valid():
+                context["status"]   = False
+                context["code"]     = status.HTTP_400_BAD_REQUEST
+                context["message"]  = serializer.errors
+                return Response(context, status=status.HTTP_400_BAD_REQUEST)
+            
+            userId      = payLoad['id']
+            userObj     = User.objects.get(id=userId)
+            serializer  = UserUpdateSerializer(userObj,data=payLoad,partial=True)
+            if not serializer.is_valid():
+                context["status"]   = False
+                context["code"]     = status.HTTP_400_BAD_REQUEST
+                context["message"]  = serializer.errors
+                return Response(context, status=status.HTTP_400_BAD_REQUEST)
+            
+            serializer.save()
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["message"]  = "success"
+            return Response(context, status=status.HTTP_200_OK)
+        except Exception as e:
+            context["status"]   = False
+            context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
+            context["message"]  = "Something went wrong please try agin later!"
+            context["error"]    = str(e)
+            return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+
 # User Public View
 class StoreUserView(viewsets.ViewSet):
     def storeList(self, request):
