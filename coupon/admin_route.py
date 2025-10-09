@@ -1,10 +1,7 @@
-from django.urls import path
-from .views import (
-    StoreAdminView,
-    CategoryAdminView,
-    SubCategoryAdminView,
-    UserAdminView
-)
+from django.urls import path,include
+from .views import (StoreAdminView,CategoryAdminView,UserAdminView)
+
+
 
 urlpatterns = [
     # ===== STORE ROUTES =====
@@ -23,13 +20,7 @@ urlpatterns = [
     path('store/category/update/', CategoryAdminView.as_view({"patch": "categoryUpdate"}), name='category-update'),
     path('store/category/delete/<uuid:uuid>/', CategoryAdminView.as_view({"delete": "categoryDelete"}), name='category-delete'),
 
-    # ===== SUBCATEGORY ROUTES =====
-    path('store/category/subcategory/', SubCategoryAdminView.as_view({"get": "subCategoryList"}), name='subcategory-list'),
-    path('store/category/subcategory/create/', SubCategoryAdminView.as_view({"post": "subCategoryCreate"}), name='subcategory-create'),
-    path('store/category/subcategory/update/', SubCategoryAdminView.as_view({"patch": "subCategoryUpdate"}), name='subcategory-update'),
-    path('store/category/subcategory/delete/<uuid:pk>/', SubCategoryAdminView.as_view({"delete": "subCategoryDelete"}), name='subcategory-delete'),
-
-    # ===== USER ROUTES =====
-    path('store/user/list/', UserAdminView.as_view({"get": "userListByFilter"}), name='user-list'),
-    path('store/user/update/', UserAdminView.as_view({"patch": "updateUser"}), name='user-update'),
+    # User View
+    path('store/user/list/',   UserAdminView.as_view({"get":"userListByFilter"}),name='store-user'),
+    path('store/user/update/',   UserAdminView.as_view({"patch":"updateUser"}),name='store-user-update'),
 ]
