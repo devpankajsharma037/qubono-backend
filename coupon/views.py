@@ -343,6 +343,48 @@ class CategoryAdminView(viewsets.ViewSet):
             context["message"]  = "Something went wrong please try agin later!"
             context["error"]    = str(e)
             return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class UserAdminView(viewsets.ViewSet):
+    authentication_classes  = [JWTAuthentication]
+    permission_classes      = [IsAuthenticated]
+
+    @checkRole()
+    def userListByFilter(self,request):
+        context = {}
+        try:
+            
+            isActiveUser    = request.query_params.get('is_active',None)
+            userRole        = request.query_params.get('role',None)
+            filters = Q()
+            optional_filter = Q()
+            if userRole:
+                optional_filter &= Q(role=userRole)
+            if isActiveUser:
+
+                if isActiveUser == 'false':
+                    isActiveUser = False
+                else:
+                    isActiveUser = True
+
+                optional_filter &= Q(is_active=isActiveUser)
+
+            if optional_filter:
+                filters &= optional_filter
+
+            userQuerySets       = User.objects.filter(filters).distinct()
+            serializer          = UserSerializer(userQuerySets,many=True)
+            context['data']     = serializer.data
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["message"]  = "success"
+            return Response(context, status=status.HTTP_200_OK)
+        except Exception as e:
+            context["status"]   = False
+            context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
+            context["message"]  = "Something went wrong please try agin later!"
+            context["error"]    = str(e)
+            return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 # User Public View
 class StoreUserView(viewsets.ViewSet):
     def storeList(self, request):
