@@ -257,11 +257,12 @@ class CategoryValidateSerializer(serializers.Serializer):
             raise serializers.ValidationError({"error":"Category with this name already exists."})
         return value
 
-class CategoryUpdateValidateSerializer(serializers.Serializer):
-    name        = serializers.CharField(required=True)
-    id          = serializers.UUIDField(required=True)
+    def create(self, validated_data):
+        user = self.context['request'].user
+        return Category.objects.create(user=user, **validated_data)
 
-class CategorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Category
-        fields = "__all__"
+    def update(self, instance, validated_data):
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
