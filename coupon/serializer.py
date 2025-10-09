@@ -250,32 +250,58 @@ class OrderCouponSerializer(serializers.ModelSerializer):
         fields  = ("code","name","note","validate_till","icon","banner","term_conditions","type","store",)
 
 class CategoryValidateSerializer(serializers.Serializer):
-    name        = serializers.CharField(required=True)
+    name        = serializers.CharField(required=True,max_length=100)
+    note         =serializers.CharField(required=False)
     def validate_name(self, value):
         normalized_value = value.strip().lower()
         if Category.objects.filter(name__iexact=normalized_value).exists():
-            raise serializers.ValidationError({"error":"Category with this name already exists."})
+            raise serializers.ValidationError("Category with this name already exists.")
         return value
-      
-class CategoryUpdateValidateSerializer(serializers.Serializer):
-    name        = serializers.CharField(required=True)
-    id          = serializers.UUIDField(required=True)
 
-class CategorySaveSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Category
-        fields = "__all__"
+    def create(self, validated_data):
+        user = self.context['request'].user
 
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        exclude = ('password','user_permissions','groups','is_active',)
+        return Category.objects.create(user=user, **validated_data)
 
-class UserUpdateValidationSerializer(serializers.Serializer):
-    is_active   = serializers.BooleanField(required=True)
-    id          = serializers.UUIDField(required=True)
+    def update(self, instance, validated_data):
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
 
-class UserUpdateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ("is_delete",)
+class SubCategoryValidateSerializer(serializers.Serializer):
+    name        = serializers.CharField(required=True, max_length=100)
+    category    = serializers.CharField(required=True,max_length=100)
+    note        = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+   
+
+    # --- Validate Name ---
+    def validate_name(self, value):
+        """Ensure name is unique (case-insensitive) per user."""
+        user = self.context['request'].user
+        if SubCategory.objects.filter(name__iexact=value, user=user).exists():
+            raise serializers.ValidationError("SubCategory with this name already exists.")
+        return value
+
+    # --- Validate Category ---
+    def validate_category(self, value):
+        """Ensure the category exists and belongs to the user."""
+        user = self.context['request'].user
+        try:
+            category = Category.objects.get(pk=value, user=user)
+        except Category.DoesNotExist:
+            raise serializers.ValidationError("Invalid category ID.")
+        return category  # return actual Category instance
+
+    # --- Create ---
+    def create(self, validated_data):
+        user = self.context['request'].user
+        category = validated_data.pop('category')  # already validated Category instance
+        return SubCategory.objects.create(user=user, category=category, **validated_data)
+
+    # --- Update ---
+    def update(self, instance, validated_data):
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
