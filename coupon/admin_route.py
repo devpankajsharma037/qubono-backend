@@ -17,4 +17,9 @@ urlpatterns = [
     path('store/category/create/',   CategoryAdminView.as_view({"post":"categoryCreate"}),name='store-category-create'),
     path('store/category/update/',   CategoryAdminView.as_view({"patch":"categoryUpdate"}),name='store-category-update'),
     path('store/category/delete/<uuid:pk>/',   CategoryAdminView.as_view({"delete":"categoryDelete"}),name='store-category-delete'),
+
+    path('store/category/',   SubCategoryAdminView.as_view({"get":"subCategoryList"}),name='store-category'),
+    path('store/category/subcategory/create/',   SubCategoryAdminView.as_view({"post":"subCategoryCreate"}),name='store-subcategory-create'),
+    path('store/category/subcategory/update/',   SubCategoryAdminView.as_view({"patch":"subCategoryUpdate"}),name='store-subcategory-update'),
+    path('store/category/subcategory/delete/<uuid:pk>/',   SubCategoryAdminView.as_view({"delete":"subCategoryDelete"}),name='store-subcategory-delete'),
 ]
