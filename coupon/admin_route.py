@@ -1,30 +1,35 @@
-from django.urls import path,include
-from .views import (StoreAdminView,CategoryAdminView,SubCategoryAdminView)
-
+from django.urls import path
+from .views import (
+    StoreAdminView,
+    CategoryAdminView,
+    SubCategoryAdminView,
+    UserAdminView
+)
 
 urlpatterns = [
-    # Store View
-    path('store/create/',   StoreAdminView.as_view({"post":"createStore"}),name='store-create'),
-    path('store/list/',     StoreAdminView.as_view({"get":"storeList"}),name='store-list'),
-    path('store/update/',   StoreAdminView.as_view({"patch":"updateStore"}),name='store-update'),
-    path('store/<slug>',    StoreAdminView.as_view({"get":"storeBySlug","delete":"deleteStore"}),name='store-by-slug'),
+    # ===== STORE ROUTES =====
+    path('store/create/', StoreAdminView.as_view({"post": "createStore"}), name='store-create'),
+    path('store/list/', StoreAdminView.as_view({"get": "storeList"}), name='store-list'),
+    path('store/update/', StoreAdminView.as_view({"patch": "updateStore"}), name='store-update'),
+    path('store/<slug:slug>/', StoreAdminView.as_view({"get": "storeBySlug", "delete": "deleteStore"}), name='store-detail'),
 
-    # Coupon View
-    path('store/coupon/',   StoreAdminView.as_view({"get":"storeCouponByFllter"}),name='store-coupon'),
+    # ===== COUPON ROUTE =====
+    path('store/coupon/', StoreAdminView.as_view({"get": "storeCouponByFllter"}), name='store-coupon'),
 
-    # Category View
-    path('store/category/list/',   CategoryAdminView.as_view({"get":"categoryListByFilter"}),name='store-category'),
-    path('store/category/<uuid>/',   CategoryAdminView.as_view({"get":"singleCategory"}),name='store-category-single'),
-    path('store/category/create/',   CategoryAdminView.as_view({"post":"categoryCreate"}),name='store-category-create'),
-    path('store/category/update/',   CategoryAdminView.as_view({"patch":"categoryUpdate"}),name='store-category-update'),
-    path('store/category/delete/<uuid:pk>/',   CategoryAdminView.as_view({"delete":"categoryDelete"}),name='store-category-delete'),
+    # ===== CATEGORY ROUTES =====
+    path('store/category/list/', CategoryAdminView.as_view({"get": "categoryListByFilter"}), name='category-list'),
+    path('store/category/<uuid:uuid>/', CategoryAdminView.as_view({"get": "singleCategory"}), name='category-detail'),
+    path('store/category/create/', CategoryAdminView.as_view({"post": "categoryCreate"}), name='category-create'),
+    path('store/category/update/', CategoryAdminView.as_view({"patch": "categoryUpdate"}), name='category-update'),
+    path('store/category/delete/<uuid:uuid>/', CategoryAdminView.as_view({"delete": "categoryDelete"}), name='category-delete'),
 
-    path('store/category/subcategory/',   SubCategoryAdminView.as_view({"get":"subCategoryList"}),name='store-subcategory'),
-    path('store/category/subcategory/create/',   SubCategoryAdminView.as_view({"post":"subCategoryCreate"}),name='store-subcategory-create'),
-    path('store/category/subcategory/update/',   SubCategoryAdminView.as_view({"patch":"subCategoryUpdate"}),name='store-subcategory-update'),
-    path('store/category/subcategory/delete/<uuid:pk>/',   SubCategoryAdminView.as_view({"delete":"subCategoryDelete"}),name='store-subcategory-delete'),
+    # ===== SUBCATEGORY ROUTES =====
+    path('store/category/subcategory/', SubCategoryAdminView.as_view({"get": "subCategoryList"}), name='subcategory-list'),
+    path('store/category/subcategory/create/', SubCategoryAdminView.as_view({"post": "subCategoryCreate"}), name='subcategory-create'),
+    path('store/category/subcategory/update/', SubCategoryAdminView.as_view({"patch": "subCategoryUpdate"}), name='subcategory-update'),
+    path('store/category/subcategory/delete/<uuid:pk>/', SubCategoryAdminView.as_view({"delete": "subCategoryDelete"}), name='subcategory-delete'),
 
-    # User View
-    path('store/user/list/',   UserAdminView.as_view({"get":"userListByFilter"}),name='store-user'),
-    path('store/user/update/',   UserAdminView.as_view({"patch":"updateUser"}),name='store-user-update'),
+    # ===== USER ROUTES =====
+    path('store/user/list/', UserAdminView.as_view({"get": "userListByFilter"}), name='user-list'),
+    path('store/user/update/', UserAdminView.as_view({"patch": "updateUser"}), name='user-update'),
 ]

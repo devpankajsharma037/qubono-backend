@@ -225,21 +225,15 @@ class CategoryAdminView(viewsets.ViewSet):
             payLoad         = request.data
             payLoad['user'] = request.user.id
             payLoad['is_active']    = True
-            serializer  = CategoryValidateSerializer(data=payLoad)
+            serializer  = CategoryValidateSerializer(data=payLoad,context={'request':request})
             if not serializer.is_valid():
                 context["status"]   = False
                 context["code"]     = status.HTTP_400_BAD_REQUEST
                 context["message"]  = serializer.errors
                 return Response(context, status=status.HTTP_400_BAD_REQUEST)
 
-            serializer = CategorySaveSerializer(data=payLoad)
-            if not serializer.is_valid():
-                context["status"]   = False
-                context["code"]     = status.HTTP_400_BAD_REQUEST
-                context["error"]  = serializer.errors
-                return Response(context, status=status.HTTP_400_BAD_REQUEST)
-
-            serializer.save()
+            category_data = serializer.save()
+            context['data']       = CategorySerializer(category_data).data
             context["status"]   = True
             context["code"]     = status.HTTP_200_OK
             context["message"]  = "success"
@@ -255,8 +249,8 @@ class CategoryAdminView(viewsets.ViewSet):
     def categoryUpdate(self,request):
         context = {}
         try:
-            payload = request.data
-            category_id = payload.get("id")
+            payLoad = request.data
+            category_id = payLoad.get("id")
 
             if not category_id:
                 context["status"] = False
@@ -274,14 +268,15 @@ class CategoryAdminView(viewsets.ViewSet):
                 context["message"]  = "Category not found."
                 return Response(context, status=status.HTTP_404_NOT_FOUND)
         
-            serializer = CategorySaveSerializer(category,data=payLoad,partial=True)
+            serializer = CategoryValidateSerializer(category,data=payLoad,partial=True)
             if not serializer.is_valid():
                 context["status"]   = False
                 context["code"]     = status.HTTP_400_BAD_REQUEST
                 context["error"]  = serializer.errors
                 return Response(context, status=status.HTTP_400_BAD_REQUEST)
 
-            serializer.save()
+            category_data=serializer.save()
+            context['data']     = CategorySerializer(category_data).data
             context["status"]   = True
             context["code"]     = status.HTTP_200_OK
             context["message"]  = "success"
@@ -300,7 +295,7 @@ class CategoryAdminView(viewsets.ViewSet):
             try:
                 category = Category.objects.get(pk=uuid)
             except Category.DoesNotExist:
-                context["status"]   = True
+                context["status"]   = False
                 context["code"]     = status.HTTP_404_NOT_FOUND
                 context["error"]    = "Category not found."
                 return Response(context, status=status.HTTP_404_NOT_FOUND)
@@ -324,7 +319,7 @@ class CategoryAdminView(viewsets.ViewSet):
             try:
                 categoryObj = Category.objects.get(pk=uuid)
             except Category.DoesNotExist:
-                context["status"]   = True
+                context["status"]   = False
                 context["code"]     = status.HTTP_404_NOT_FOUND
                 context["error"]    = "Category not found."
                 return Response(context, status=status.HTTP_404_NOT_FOUND)
