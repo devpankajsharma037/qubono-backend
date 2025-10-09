@@ -256,13 +256,26 @@ class CategoryValidateSerializer(serializers.Serializer):
         if Category.objects.filter(name__iexact=normalized_value).exists():
             raise serializers.ValidationError({"error":"Category with this name already exists."})
         return value
+      
+class CategoryUpdateValidateSerializer(serializers.Serializer):
+    name        = serializers.CharField(required=True)
+    id          = serializers.UUIDField(required=True)
 
-    def create(self, validated_data):
-        user = self.context['request'].user
-        return Category.objects.create(user=user, **validated_data)
+class CategorySaveSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = "__all__"
 
-    def update(self, instance, validated_data):
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-        instance.save()
-        return instance
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        exclude = ('password','user_permissions','groups','is_active',)
+
+class UserUpdateValidationSerializer(serializers.Serializer):
+    is_active   = serializers.BooleanField(required=True)
+    id          = serializers.UUIDField(required=True)
+
+class UserUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ("is_delete",)

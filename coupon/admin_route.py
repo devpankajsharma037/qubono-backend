@@ -13,7 +13,8 @@ urlpatterns = [
     path('store/coupon/',   StoreAdminView.as_view({"get":"storeCouponByFllter"}),name='store-coupon'),
 
     # Category View
-    path('store/category/',   CategoryAdminView.as_view({"get":"categoryListByFilter"}),name='store-category'),
+    path('store/category/list/',   CategoryAdminView.as_view({"get":"categoryListByFilter"}),name='store-category'),
+    path('store/category/<uuid>/',   CategoryAdminView.as_view({"get":"singleCategory"}),name='store-category-single'),
     path('store/category/create/',   CategoryAdminView.as_view({"post":"categoryCreate"}),name='store-category-create'),
     path('store/category/update/',   CategoryAdminView.as_view({"patch":"categoryUpdate"}),name='store-category-update'),
     path('store/category/delete/<uuid:pk>/',   CategoryAdminView.as_view({"delete":"categoryDelete"}),name='store-category-delete'),
@@ -22,4 +23,8 @@ urlpatterns = [
     path('store/category/subcategory/create/',   SubCategoryAdminView.as_view({"post":"subCategoryCreate"}),name='store-subcategory-create'),
     path('store/category/subcategory/update/',   SubCategoryAdminView.as_view({"patch":"subCategoryUpdate"}),name='store-subcategory-update'),
     path('store/category/subcategory/delete/<uuid:pk>/',   SubCategoryAdminView.as_view({"delete":"subCategoryDelete"}),name='store-subcategory-delete'),
+
+    # User View
+    path('store/user/list/',   UserAdminView.as_view({"get":"userListByFilter"}),name='store-user'),
+    path('store/user/update/',   UserAdminView.as_view({"patch":"updateUser"}),name='store-user-update'),
 ]
