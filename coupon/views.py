@@ -384,18 +384,60 @@ class SubCategoryAdminView(viewsets.ViewSet):
             return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     @checkRole()
+    def subCategoryUpdate(self,request):
+        context = {}
+        try:
+            payLoad    = request.data
+            serializer = SubCategoryUpdateValidateSerializer(data=payLoad)
+            if not serializer.is_valid():
+                context["status"]   = False
+                context["code"]     = status.HTTP_400_BAD_REQUEST
+                context["message"]  = serializer.errors
+                return Response(context, status=status.HTTP_400_BAD_REQUEST)
+
+            categoryId = payLoad.get("id")
+
+            try:
+                category = SubCategory.objects.get(pk=categoryId)
+            except SubCategory.DoesNotExist:
+                context["status"]   = False
+                context["code"]     = status.HTTP_404_NOT_FOUND
+                context["message"]  = "Sub category not found."
+                return Response(context, status=status.HTTP_404_NOT_FOUND)
+        
+            serializer = SubCategorySaveSerializer(category,data=payLoad,partial=True)
+            if not serializer.is_valid():
+                context["status"]   = False
+                context["code"]     = status.HTTP_400_BAD_REQUEST
+                context["message"]  = serializer.errors
+                return Response(context, status=status.HTTP_400_BAD_REQUEST)
+
+            serializer.save()
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["message"]  = "success"
+            return Response(context, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            context["status"]   = False
+            context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
+            context["message"]  = "Something went wrong please try agin later!"
+            context["error"]    = str(e)
+            return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @checkRole()
     def singleSubCategory(self,request,uuid):
         context = {}
         try:
             try:
-                subCategoryObj = SubCategory.objects.get(pk=uuid)
+                categoryObj = Category.objects.get(pk=uuid)
             except SubCategory.DoesNotExist:
                 context["status"]   = True
                 context["code"]     = status.HTTP_404_NOT_FOUND
                 context["message"]    = "Sub category not found."
                 return Response(context, status=status.HTTP_404_NOT_FOUND)
     
-            serializer          = SubCategorySerializer(subCategoryObj)
+            serializer          = GetAllSubCategorySerializer(categoryObj)
             context["status"]   = True
             context["code"]     = status.HTTP_200_OK
             context["message"]  = "success"

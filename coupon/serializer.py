@@ -254,12 +254,18 @@ class CategoryValidateSerializer(serializers.Serializer):
     def validate_name(self, value):
         normalized_value = value.strip().lower()
         if Category.objects.filter(name__iexact=normalized_value).exists():
-            raise serializers.ValidationError({"error":"Category with this name already exists."})
+            raise serializers.ValidationError("Category with this name already exists.")
         return value
 
 class CategoryUpdateValidateSerializer(serializers.Serializer):
     name        = serializers.CharField(required=True)
     id          = serializers.UUIDField(required=True)
+
+    def validate_name(self, value):
+        normalized_value = value.strip().lower()
+        if Category.objects.filter(name__iexact=normalized_value).exists():
+            raise serializers.ValidationError("Category with this name already exists.")
+        return value
 
 class CategorySaveSerializer(serializers.ModelSerializer):
     class Meta:
@@ -287,10 +293,26 @@ class SubCategoryValidateSerializer(serializers.Serializer):
     def validate_name(self, value):
         normalized_value = value.strip().lower()
         if SubCategory.objects.filter(name__iexact=normalized_value).exists():
-            raise serializers.ValidationError({"error":"sub category with this name already exists."})
+            raise serializers.ValidationError("sub category with this name already exists.")
         return value
     
 class SubCategorySaveSerializer(serializers.ModelSerializer):
     class Meta:
         model = SubCategory
         fields = "__all__"
+
+class GetAllSubCategorySerializer(serializers.ModelSerializer):
+    sub_categorys = SubCategorySerializer(many=True, read_only=True)
+    class Meta:
+        model = Category
+        fields = ("sub_categorys",)
+
+class SubCategoryUpdateValidateSerializer(serializers.Serializer):
+    name        = serializers.CharField(required=True)
+    id          = serializers.UUIDField(required=True)
+
+    def validate_name(self, value):
+        normalized_value = value.strip().lower()
+        if SubCategory.objects.filter(name__iexact=normalized_value).exists():
+            raise serializers.ValidationError("sub category with this name already exists.")
+        return value
