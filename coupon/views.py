@@ -526,7 +526,7 @@ class SubCategoryAdminView(viewsets.ViewSet):
             return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     @checkRole()
-    def singleCategory(self,request,uuid):
+    def singlesubCategory(self,request,uuid):
         context = {}
         try:
             try:
