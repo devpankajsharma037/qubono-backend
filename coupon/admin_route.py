@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import (StoreAdminView,CategoryAdminView,UserAdminView)
+from .views import (StoreAdminView,CategoryAdminView,UserAdminView,SubCategoryAdminView)
 
 
 urlpatterns = [
@@ -18,6 +18,11 @@ urlpatterns = [
     path('store/category/create/',   CategoryAdminView.as_view({"post":"categoryCreate"}),name='store-category-create'),
     path('store/category/update/',   CategoryAdminView.as_view({"patch":"categoryUpdate"}),name='store-category-update'),
     path('store/category/delete/<uuid>/',   CategoryAdminView.as_view({"delete":"categoryDelete"}),name='store-category-delete'),
+
+    # Category View
+    path('store/category/subcategory/create/',   SubCategoryAdminView.as_view({"post":"subCategoryCreate"}),name='store-subcategory-create'),
+    path('store/category/subcategory/<uuid>/',   SubCategoryAdminView.as_view({"get":"singleSubCategory"}),name='store-subcategory-get'),
+    path('store/category/subcategory/delete/<uuid>/',   SubCategoryAdminView.as_view({"delete":"subCategoryDelete"}),name='store-subcategory-delete'),
 
     # User View
     path('store/user/list/',   UserAdminView.as_view({"get":"userListByFilter"}),name='store-user'),

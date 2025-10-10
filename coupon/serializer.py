@@ -279,3 +279,18 @@ class UserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ("is_delete",)
+
+class SubCategoryValidateSerializer(serializers.Serializer):
+    name            = serializers.CharField(required=True)
+    category_id     = serializers.UUIDField(required=True)
+
+    def validate_name(self, value):
+        normalized_value = value.strip().lower()
+        if SubCategory.objects.filter(name__iexact=normalized_value).exists():
+            raise serializers.ValidationError({"error":"sub category with this name already exists."})
+        return value
+    
+class SubCategorySaveSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SubCategory
+        fields = "__all__"
