@@ -6,7 +6,8 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
 import razorpay
 import os
-from core.utils.decorator import checkAccountStatus
+from django.db.models import Q
+from core.utils.decorator import checkAccountStatus,checkRole
 
 client = razorpay.Client(auth=(os.getenv("RAZORPAY_KEY_ID"), os.getenv("RAZORPAY_KEY_SECRET")))
 
@@ -177,7 +178,41 @@ class PaymentViewset(viewsets.ViewSet):
             context["error"]    = str(e)
             return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-class UserOrderViewset(viewsets.ViewSet):
+    @checkRole()
+    def adminPaymentList(self,request):
+        context = {}
+        try:
+            payLoad       = request.data
+            users         = payLoad.get('users', None)
+            paymentStatus = payLoad.get('status', None)
+
+            filters         = Q()
+            optional_filter = Q()
+            
+            if users:
+                optional_filter &= Q(user_id__in=users)
+
+            if paymentStatus:
+                optional_filter &= Q(status__in=paymentStatus)
+
+            if optional_filter:
+                filters &= optional_filter
+
+            paymentQuerySets    = Payment.objects.filter(filters).distinct()
+            serializer          = PaymentListSerializer(paymentQuerySets,many=True)
+            context["data"]     = serializer.data
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["message"]  = "success"
+            return Response(context, status=status.HTTP_200_OK)
+        except Exception as e:
+            context["status"]   = False
+            context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
+            context["message"]  = "Something went wrong please try agin later!"
+            context["error"]    = str(e)
+            return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class OrderViewset(viewsets.ViewSet):
     authentication_classes  = [JWTAuthentication]
     permission_classes      = [IsAuthenticated]
 
@@ -185,9 +220,40 @@ class UserOrderViewset(viewsets.ViewSet):
     def userOrderList(self,request):
         context = {}
         try:
-            userObj         = request.user
-            orderQuerySets  = Order.objects.filter(user=userObj)
-            serializer      = OrderSerializer(orderQuerySets,many=True)
+            userObj             = request.user
+            orderQuerySets      = Order.objects.filter(user=userObj)
+            serializer          = OrderSerializer(orderQuerySets,many=True)
+            context["data"]     = serializer.data
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["message"]  = "success"
+            return Response(context, status=status.HTTP_200_OK)
+        except Exception as e:
+            context["status"]   = False
+            context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
+            context["message"]  = "Something went wrong please try agin later!"
+            context["error"]    = str(e)
+            return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    @checkRole()
+    def adminOrderList(self,request):
+        context = {}
+        try:
+            payLoad       = request.data
+            userObj       = request.user
+            users         = payLoad.get('users', None)
+
+            filters         = Q()
+            optional_filter = Q()
+            
+            if users:
+                optional_filter &= Q(user_id__in=users)
+
+            if optional_filter:
+                filters &= optional_filter
+
+            orderQuerySets      = Order.objects.filter(filters).distinct()
+            serializer          = OrderSerializer(orderQuerySets,many=True)
             context["data"]     = serializer.data
             context["status"]   = True
             context["code"]     = status.HTTP_200_OK
