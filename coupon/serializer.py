@@ -316,3 +316,17 @@ class SubCategoryUpdateValidateSerializer(serializers.Serializer):
         if SubCategory.objects.filter(name__iexact=normalized_value).exists():
             raise serializers.ValidationError("sub category with this name already exists.")
         return value
+    
+class CouponSaveSerializer(serializers.ModelSerializer):
+    name            = serializers.CharField(required=True)
+    validate_till   = serializers.DateTimeField(required=True) 
+    sub_category    = serializers.PrimaryKeyRelatedField(queryset=SubCategory.objects.all(), many=True, required=True)
+    store           = serializers.PrimaryKeyRelatedField(queryset=Store.objects.all(), required=True)
+    type            = serializers.CharField(required=True)
+
+    class Meta:
+        model = Coupon
+        fields = "__all__"
+
+class CouponUpdateDeleteValidationSerializer(serializers.Serializer):
+    id  = serializers.UUIDField(required=True)

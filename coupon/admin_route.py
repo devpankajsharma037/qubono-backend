@@ -12,6 +12,8 @@ urlpatterns = [
     # Coupon View
     path('store/coupon/',   StoreAdminView.as_view({"get":"storeCouponByFllter"}),name='store-coupon'),
     path('store/coupon/create/',   StoreAdminView.as_view({"post":"storeCouponCreate"}),name='store-coupon-create'),
+    path('store/coupon/update/',   StoreAdminView.as_view({"patch":"storeCouponUpdate"}),name='store-coupon-update'),
+    path('store/coupon/delete/',   StoreAdminView.as_view({"delete":"storeCouponDelete"}),name='store-coupon-delete'),
 
     # Category View
     path('store/category/list/',   CategoryAdminView.as_view({"get":"categoryListByFilter"}),name='store-category'),
