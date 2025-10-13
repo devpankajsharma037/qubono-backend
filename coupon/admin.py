@@ -24,9 +24,9 @@ class WishlistAdmin(admin.ModelAdmin):
     list_display = ['id'] + commanList
 admin.site.register(Wishlist, WishlistAdmin)
 
-class NotificationAdmin(admin.ModelAdmin):
-    list_display = ['id'] + commanList
-admin.site.register(Notification, NotificationAdmin)
+# class NotificationAdmin(admin.ModelAdmin):
+#     list_display = ['id'] + commanList
+# admin.site.register(Notification, NotificationAdmin)
 
 class RatingAdmin(admin.ModelAdmin):
     list_display = ['id'] + commanList
