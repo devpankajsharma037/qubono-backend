@@ -2,8 +2,10 @@ from django.contrib import admin
 from .models import Payment,Order,CouponUsage
 from django.utils.html import format_html
 
+commanList = ['is_deleted', 'is_active']
+
 class PaymentAdmin(admin.ModelAdmin):
-    list_display    = ['id','users','status','price','platform_name','order_id',]
+    list_display    = ['id','users','status','price','platform_name','order_id',] + commanList
 
     def users(self, obj):
         if obj.user:
@@ -15,7 +17,7 @@ class PaymentAdmin(admin.ModelAdmin):
 admin.site.register(Payment, PaymentAdmin)
 
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ['id','users','coupons','payments','order_id','total_amount','discount_amount','final_amount']
+    list_display = ['id','users','coupons','payments','order_id','total_amount','discount_amount','final_amount'] + commanList
 
     def payments(self, obj):
         if obj.payment:
@@ -43,7 +45,7 @@ class OrderAdmin(admin.ModelAdmin):
 admin.site.register(Order, OrderAdmin)
 
 class CouponUsageAdmin(admin.ModelAdmin):
-    list_display = ['id','coupons','users','orders','used_at']
+    list_display = ['id','coupons','users','orders','used_at'] + commanList
 
     def coupons(self, obj):
         if obj.coupon:
@@ -68,5 +70,4 @@ class CouponUsageAdmin(admin.ModelAdmin):
             )
         return "-"
     orders.short_description = "Order"
-
 admin.site.register(CouponUsage, CouponUsageAdmin)
