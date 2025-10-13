@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import User,Token
+from .models import User,Token,IPAddress
 from django.contrib.auth.models import Group
 
 admin.site.unregister(Group)
@@ -13,3 +13,7 @@ admin.site.register(User, UserAdmin)
 class TokenAdmin(admin.ModelAdmin):
     list_display = ['id','user','type','token']
 admin.site.register(Token, TokenAdmin)
+
+class IPAddressAdmin(admin.ModelAdmin):
+    list_display = ['id']
+admin.site.register(IPAddress, IPAddressAdmin)

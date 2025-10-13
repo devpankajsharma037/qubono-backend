@@ -35,3 +35,8 @@ class Token(CommonModel):
 
     class Meta:
         verbose_name_plural = 'Token'
+
+class IPAddress(models.Model):
+    ip = models.GenericIPAddressField(null=True,blank=True)
+    is_blocked = models.BooleanField(default=False)
+

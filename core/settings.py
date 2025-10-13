@@ -1,9 +1,12 @@
 from datetime import timedelta
 from pathlib import Path
 import os
+from core.utils.logger.logger_ip_middleware import IPLogMiddleware
+from core.utils.ip_blocker_middleware import SimpleMiddleware
+from datetime import datetime
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -33,6 +36,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'core.utils.logger.logger_ip_middleware.IPLogMiddleware',
+    'core.utils.ip_blocker_middleware.SimpleMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -189,3 +194,106 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 8388608
 
 
 WEB_APP_URL = os.getenv('WEB_APP_URL')
+
+#start logger
+LOGS_DIR = os.path.join(BASE_DIR, 'logs')         
+if not os.path.exists(LOGS_DIR):
+    os.makedirs(LOGS_DIR)
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    
+    'filters': {
+    'add_ip': {
+        '()': 'core.utils.logger.ipfilter.RequestIPFilter',
+        },
+    },
+    
+    'formatters': {
+        'verbose': {
+            '()': 'core.utils.logger.ipformatter.SafeFormatter',
+            'format': '{levelname} {asctime} {module} {ip} {message}',
+            'style': '{',
+        },
+        'simple': {
+            '()': 'core.utils.logger.ipformatter.SafeFormatter',
+            'format': '{levelname} {asctime} {ip} {message}',
+            'style': '{',
+        },
+    
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+            'filters': ['add_ip'],
+          
+        },
+        'daily_file': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': os.path.join(LOGS_DIR, f'django_{datetime.now().strftime("%Y-%m-%d")}.log'),
+            'when': 'midnight',
+            'interval': 1,
+            'backupCount': 7,
+            'formatter': 'verbose',
+            'encoding': 'utf-8',
+            'filters': ['add_ip'],
+           
+        },
+        'error_file': {
+            'level': 'ERROR',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': os.path.join(LOGS_DIR, f'error_{datetime.now().strftime("%Y-%m-%d")}.log'),
+            'when': 'midnight',
+            'interval': 1,
+            'backupCount': 7,
+            'formatter': 'verbose',
+            'encoding': 'utf-8',
+            'filters': ['add_ip'],
+           
+        },
+        'database_file': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': os.path.join(LOGS_DIR, f'database_{datetime.now().strftime("%Y-%m-%d")}.log'),
+            'when': 'midnight',
+            'interval': 1,
+            'backupCount': 7,
+            'formatter': 'verbose',
+            'encoding': 'utf-8',
+            'filters': ['add_ip'],
+        }
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'daily_file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'django.request': {
+            'handlers': ['error_file'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'django.db.backends': {
+            'handlers': ['database_file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        # Your app logger
+        'core': {  # Replace with your actual app name
+            'handlers': ['console', 'daily_file', 'error_file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        # Root logger
+        '': {
+            'handlers': ['console', 'daily_file'],
+            'level': 'INFO',
+        }
+    }
+}
+# :End logger

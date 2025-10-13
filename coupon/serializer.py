@@ -305,3 +305,4 @@ class SubCategoryValidateSerializer(serializers.Serializer):
             setattr(instance, attr, value)
         instance.save()
         return instance
+

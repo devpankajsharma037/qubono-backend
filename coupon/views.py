@@ -580,7 +580,7 @@ class StoreUserView(viewsets.ViewSet):
             return Response(context, status=status.HTTP_200_OK)
 
         except Exception as e:
-            print(str(e))
+          
             context["data"]     = []
             context["status"]   = True
             context["code"]     = status.HTTP_200_OK
