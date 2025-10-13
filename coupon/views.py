@@ -196,6 +196,23 @@ class StoreAdminView(viewsets.ViewSet):
             context["error"]    = str(e)
             return Response(context, status=status.HTTP_200_OK)
 
+    @checkRole()
+    def storeCouponCreate(self,request):
+        context = {}
+        try:
+            payLoad             = request.data
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["message"]  = "success"
+            return Response(context, status=status.HTTP_200_OK)
+        except Exception as e:
+            context["status"]   = False
+            context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
+            context["message"]  = "Something went wrong please try agin later!"
+            context["error"]    = str(e)
+            return Response(context, status=status.HTTP_200_OK)
+
+
 class CategoryAdminView(viewsets.ViewSet):
     authentication_classes  = [JWTAuthentication]
     permission_classes      = [IsAuthenticated]
@@ -550,6 +567,7 @@ class UserAdminView(viewsets.ViewSet):
             context["error"]    = str(e)
             return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
+
 
 # User Public View
 class StoreUserView(viewsets.ViewSet):
