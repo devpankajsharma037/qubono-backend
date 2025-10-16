@@ -427,10 +427,9 @@ class SubCategoryAdminView(viewsets.ViewSet):
             context["message"]  = "success"
             return Response(context, status=status.HTTP_200_OK)
         except Exception as e:
-            context["data"]     = []
-            context["status"]   = True
-            context["code"]     = status.HTTP_200_OK
-            context["message"]  = "success"
+            context["status"]   = False
+            context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
+            context["message"]  = str(e)
             return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     @checkRole()
@@ -803,4 +802,135 @@ class RatingLoggedView(viewsets.ViewSet):
             context["status"]   = True
             context["code"]     = status.HTTP_200_OK
             context["message"]  = "success"
+            return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class NotificationView(viewsets.ViewSet):
+    authentication_classes  = [JWTAuthentication]
+    permission_classes      = [IsAuthenticated]
+
+    
+    def notificationList(self,request):
+        context={}
+        try:
+            queryset = Notification.objects.filter(user=request.user)
+            serializer = NotificationSerializer(queryset,many=True)
+            context['data']         = serializer.data
+            context['status']       = True
+            context['code']         = status.HTTP_200_OK
+            context['message']      = 'success'
+            return Response(context,status=status.HTTP_200_OK)
+        except Exception as e:
+            context['status']     = False
+            context['code']       = status.HTTP_500_INTERNAL_SERVER_ERROR
+            context['message']    = str(e)
+            return Response(context,status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @checkRole()
+    def notificationCreate(self,request):
+        context={}
+        try:
+            payload = request.data
+            serializer = NotificationCreateSerializer(data = payload,context={'request':request})
+            if not serializer.is_valid():
+                context['status']     = False
+                context['code']       = status.HTTP_400_BAD_REQUEST
+                context['message']    = serializer.errors
+                return Response(context,status=status.HTTP_400_BAD_REQUEST)
+            notification=serializer.save()
+            context['data']         = NotificationSerializer(notification).data
+            context['status']       = True
+            context['code']         = status.HTTP_201_CREATED
+            context['message']      = 'success'
+            return Response(context,status=status.HTTP_201_CREATED)
+        except Exception as e:
+            context['status']     = False
+            context['code']       = status.HTTP_500_INTERNAL_SERVER_ERROR
+            context['message']    = str(e)
+            return Response(context,status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+    def notificationUpdate(self,request):
+        context = {}
+        try:
+            payLoad     = request.data
+            notificationId  = payLoad.get("id")
+
+            if not notificationId:
+                context["status"] = False
+                context["code"] = status.HTTP_400_BAD_REQUEST
+                context["message"] = "notificationId ID is required in the payload."
+                return Response(context, status=status.HTTP_400_BAD_REQUEST)
+
+            try:
+                notification = Notification.objects.get(pk=notificationId,user = request.user)
+            except Notification.DoesNotExist:
+                context["status"]   = False
+                context["code"]     = status.HTTP_404_NOT_FOUND
+                context["message"]  = "notification not found."
+                return Response(context, status=status.HTTP_404_NOT_FOUND)
+        
+            serializer = NotificationSerializer(notification,data=payLoad,partial=True)
+            if not serializer.is_valid():
+                context["status"]   = False
+                context["code"]     = status.HTTP_400_BAD_REQUEST
+                context["error"]    = serializer.errors
+                return Response(context, status=status.HTTP_400_BAD_REQUEST)
+
+            serializer.save()
+            context['data']     = serializer.data
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["message"]  = "success"
+            return Response(context, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            context["status"]   = False
+            context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
+            context["message"]  = str(e)
+            return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def notificationMarkRead(self,request,pk=None):
+        context={}
+        try:
+            try:
+                notification = Notification.objects.get(pk=pk,user = request.user)
+            except Notification.DoesNotExist:
+                context["status"]   = False
+                context["code"]     = status.HTTP_404_NOT_FOUND
+                context["message"]  = "notification not found."
+                return Response(context, status=status.HTTP_404_NOT_FOUND)
+
+            notification.is_read=True
+            notification.save()
+            serializer = NotificationSerializer(notification)
+            context['status']       = True
+            context["code"]         = status.HTTP_200_OK
+            context["message"]      = "Success"
+            return Response(context,status= status.HTTP_200_OK)
+        except Exception as e:
+            context["status"]   = False
+            context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
+            context["message"]  = str(e)
+            return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def notificationDelete(self,request,pk=None):
+        context={}
+        try:
+            try:
+                notification = Notification.objects.get(pk=pk,user = request.user)
+            except Notification.DoesNotExist:
+                context["status"]   = False
+                context["code"]     = status.HTTP_404_NOT_FOUND
+                context["message"]  = "notification not found."
+                return Response(context, status=status.HTTP_404_NOT_FOUND)
+
+           
+            notification.delete()
+            context['status']       = True
+            context["code"]         = status.HTTP_200_OK
+            context["message"]      = "deleted"
+            return Response(context,status= status.HTTP_200_OK)
+        except Exception as e:
+            context["status"]   = False
+            context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
+            context["message"]  = str(e)
             return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

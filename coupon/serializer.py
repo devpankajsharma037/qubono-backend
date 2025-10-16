@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import (Store,SubCategory,Category,Coupon,CouponType,Wishlist,Rating)
+from .models import (Store,SubCategory,Category,Coupon,CouponType,Wishlist,Rating,Notification)
 from customer.models import User
 from django.db.models import Avg,Count
 from payment.models import Order
@@ -305,4 +305,47 @@ class SubCategoryValidateSerializer(serializers.Serializer):
             setattr(instance, attr, value)
         instance.save()
         return instance
+
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = ['id','user','title','message','type','is_read']
+        read_only_fields = ['id', 'created_at', 'read', 'user']  # Prevent manual assignment of user
+
+class NotificationCreateSerializer(serializers.ModelSerializer):
+    title = serializers.CharField(max_length=100)
+    message = serializers.CharField()
+    user = serializers.UUIDField()
+
+    class Meta:
+        model = Notification
+        fields = ['title', 'message','user']  # fields the user can provide
+    
+    def validate_type(self, value):
+        allowed = ['COUPON_EXPIRY', 'NEW_DEAL', 'PAYMENT']
+        if value not in allowed:
+            raise serializers.ValidationError(f"Type must be one of {allowed}")
+        return value
+    
+    def validate_user(self, value):
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        if not User.objects.filter(id=value).exists():
+            raise serializers.ValidationError("User does not exist.")
+        return value
+        
+    def create(self, validated_data):
+        request_user = self.context['request'].user
+        
+        if not request_user.is_staff:  # normal user
+            raise serializers.ValidationError("User cannot create notification.")
+        else:
+            
+            user_id = validated_data.get('user')
+            if user_id:
+                validated_data['user'] = User.objects.get(id=user_id)
+            else:
+                validated_data['user'] = request_user
+
+        return super().create(validated_data)
 

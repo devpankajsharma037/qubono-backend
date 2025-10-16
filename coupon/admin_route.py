@@ -3,7 +3,8 @@ from .views import (
     StoreAdminView,
     CategoryAdminView,
     SubCategoryAdminView,
-    UserAdminView
+    UserAdminView,
+    NotificationView
 )
 
 urlpatterns = [
@@ -24,7 +25,7 @@ urlpatterns = [
     path('store/category/delete/<uuid:uuid>/', CategoryAdminView.as_view({"delete": "categoryDelete"}), name='category-delete'),
 
     # ===== SUBCATEGORY ROUTES =====
-    path('store/category/subcategory/', SubCategoryAdminView.as_view({"get": "subCategoryListByFilter"}), name='subcategory-list'),
+    path('store/category/subcategory/list', SubCategoryAdminView.as_view({"get": "subCategoryListByFilter"}), name='subcategory-list'),
     path('store/category/subcategory/create/', SubCategoryAdminView.as_view({"post": "subCategoryCreate"}), name='subcategory-create'),
     path('store/category/subcategory/update/', SubCategoryAdminView.as_view({"patch": "subCategoryUpdate"}), name='subcategory-update'),
     path('store/category/subcategory/delete/<uuid:uuid>/', SubCategoryAdminView.as_view({"delete": "subCategoryDelete"}), name='subcategory-delete'),
@@ -32,4 +33,11 @@ urlpatterns = [
     # ===== USER ROUTES =====
     path('store/user/list/', UserAdminView.as_view({"get": "userListByFilter"}), name='user-list'),
     path('store/user/update/', UserAdminView.as_view({"patch": "updateUser"}), name='user-update'),
+
+    # ===== NOTIFICATION =====
+    path('store/notification/list/', NotificationView.as_view({"get": "notificationList"}), name='notification-list'),
+    path('store/notification/create/', NotificationView.as_view({"post": "notificationCreate"}), name='notification-create'),
+    path('store/notification/update/', NotificationView.as_view({"patch": "notificationUpdate"}), name='notification-update'),
+    path('store/notification/read/<uuid:pk>/', NotificationView.as_view({"patch": "notificationMarkRead"}), name='notification-seen'),
+    path('store/notification/delete/<uuid:pk>/', NotificationView.as_view({"delete": "notificationDelete"}), name='notification-delete'),
 ]
