@@ -847,7 +847,8 @@ class NotificationView(viewsets.ViewSet):
             context['code']       = status.HTTP_500_INTERNAL_SERVER_ERROR
             context['message']    = str(e)
             return Response(context,status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            
+
+    @checkRole() 
     def notificationUpdate(self,request):
         context = {}
         try:
@@ -861,7 +862,7 @@ class NotificationView(viewsets.ViewSet):
                 return Response(context, status=status.HTTP_400_BAD_REQUEST)
 
             try:
-                notification = Notification.objects.get(pk=notificationId,user = request.user)
+                notification = Notification.objects.get(pk=notificationId)
             except Notification.DoesNotExist:
                 context["status"]   = False
                 context["code"]     = status.HTTP_404_NOT_FOUND
@@ -898,6 +899,9 @@ class NotificationView(viewsets.ViewSet):
                 context["code"]     = status.HTTP_404_NOT_FOUND
                 context["message"]  = "notification not found."
                 return Response(context, status=status.HTTP_404_NOT_FOUND)
+            
+            if notification.is_read == True:
+                return Response("already mark as read.")
 
             notification.is_read=True
             notification.save()
@@ -916,14 +920,18 @@ class NotificationView(viewsets.ViewSet):
         context={}
         try:
             try:
-                notification = Notification.objects.get(pk=pk,user = request.user)
+                queryset = Notification.objects.all()
+                if not request.user.is_staff:
+                    queryset = queryset.filter(user=request.user)
+
+                notification = queryset.get(pk=pk)
+
             except Notification.DoesNotExist:
                 context["status"]   = False
                 context["code"]     = status.HTTP_404_NOT_FOUND
                 context["message"]  = "notification not found."
                 return Response(context, status=status.HTTP_404_NOT_FOUND)
 
-           
             notification.delete()
             context['status']       = True
             context["code"]         = status.HTTP_200_OK
