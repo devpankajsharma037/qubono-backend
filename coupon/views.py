@@ -12,6 +12,7 @@ class StoreAdminView(viewsets.ViewSet):
     authentication_classes  = [JWTAuthentication]
     permission_classes      = [IsAuthenticated]
 
+    # Store CRUD
     @checkRole()
     def createStore(self,request):
         context = {}
@@ -152,6 +153,7 @@ class StoreAdminView(viewsets.ViewSet):
             context["message"]  = "Something went wrong please try agin later!"
             return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
+    # Coupon CRUD
     @checkRole()
     def storeCouponByFllter(self,request):
         context = {}
@@ -165,21 +167,41 @@ class StoreAdminView(viewsets.ViewSet):
 
             filters         = Q(user=userObj)
             optional_filter = Q()
-            
-            if subCategories:
+
+            if subCategories and couponType != 'GIFT_CARD':
                 optional_filter &= Q(sub_category__in=subCategories)
 
-            if categories:
+            if categories and couponType != 'GIFT_CARD':
                 optional_filter |= Q(sub_category__category__in=categories)
 
             if optional_filter:
                 filters &= optional_filter
 
-            if couponType and couponType != "ALL":
+            if couponType and couponType != "ALL" and couponType != "GIFT_CARD":
                 filters &= Q(type=couponType)
             
             if store:
                 filters &= Q(store=store)
+
+            if couponType == 'GIFT_CARD':
+                storeQueryObj       = GiftCard.objects.filter(filters)
+                serializer          = StoreGiftCardSerializer(storeQueryObj, many=True)
+                context["data"]     = serializer.data
+                context["status"]   = True
+                context["code"]     = status.HTTP_200_OK
+                context["message"]  = "success"
+                return Response(context, status=status.HTTP_200_OK)
+            
+            if couponType == 'ALL':
+                giftCardQueryObj    = GiftCard.objects.filter(is_active=True, is_deleted=False)
+                storeQueryObj       = Coupon.objects.filter(filters).distinct()
+                serializer          = StoreCommonSerializer({"giftCardObj": giftCardQueryObj, "storeObj": storeQueryObj})
+                context["data"]     = serializer.data['data']
+                context["status"]   = True
+                context["code"]     = status.HTTP_200_OK
+                context["message"]  = "success"
+                return Response(context, status=status.HTTP_200_OK)
+
 
             storeQueryObj       = Coupon.objects.filter(filters).distinct()
             serializer          = StoreCouponSerializer(storeQueryObj, many=True)
@@ -228,7 +250,7 @@ class StoreAdminView(viewsets.ViewSet):
         context = {}
         try:
             payLoad         = request.data
-            payLoad['user'] = payLoad['user']     = request.user.id
+            payLoad['user'] = request.user.id
             serializer      = CouponUpdateDeleteValidationSerializer(data=payLoad)
             if not serializer.is_valid():
                 context["status"]   = False
@@ -269,7 +291,7 @@ class StoreAdminView(viewsets.ViewSet):
         context = {}
         try:
             payLoad         = request.data
-            payLoad['user'] = payLoad['user']     = request.user.id
+            payLoad['user'] = request.user.id
             serializer      = CouponUpdateDeleteValidationSerializer(data=payLoad)
             if not serializer.is_valid():
                 context["status"]   = False
@@ -284,6 +306,281 @@ class StoreAdminView(viewsets.ViewSet):
                 context["status"]   = False
                 context["code"]     = status.HTTP_400_BAD_REQUEST
                 context["message"]  = "Coupon not found"
+                return Response(context, status=status.HTTP_400_BAD_REQUEST)
+            
+            couponObj.delete()
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["message"]  = "success"
+            return Response(context, status=status.HTTP_200_OK)
+        except Exception as e:
+            context["status"]   = False
+            context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
+            context["message"]  = "Something went wrong please try agin later!"
+            context["error"]    = str(e)
+            return Response(context, status=status.HTTP_200_OK)
+
+    # Provider CRUD
+    @checkRole()
+    def providerByFllter(self,request):
+        context = {}
+        try:
+            payLoad       = request.data
+            userObj       = request.user
+            isActive      = payLoad.get('is_active',None)
+
+            filters         = Q(user=userObj)
+        
+            if isActive:
+                filters &= Q(is_active=isActive)
+            elif not isActive and isActive != None:
+                filters &= Q(is_active=isActive)
+
+
+            providerQueryObj    = Provider.objects.filter(filters).distinct()
+            serializer          = ProviderListSerializer(providerQueryObj, many=True)
+            context["data"]     = serializer.data
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["message"]  = "success"
+            return Response(context, status=status.HTTP_200_OK)
+        except Exception as e:
+            context["data"]     = []
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["message"]  = "success"
+            context["error"]    = str(e)
+            return Response(context, status=status.HTTP_200_OK)
+
+    @checkRole()
+    def providerCreate(self,request):
+        context = {}
+        try:
+            payLoad                 = request.data
+            payLoad['user']         = request.user.id
+            payLoad['is_active']    = True
+            serializer              = ProviderSaveSerializer(data=payLoad)
+            if not serializer.is_valid():
+                context["status"]   = False
+                context["code"]     = status.HTTP_400_BAD_REQUEST
+                context["message"]  = serializer.errors
+                return Response(context, status=status.HTTP_400_BAD_REQUEST)
+            
+
+            serializer.save()
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["message"]  = "success"
+            return Response(context, status=status.HTTP_200_OK)
+        except Exception as e:
+            context["status"]   = False
+            context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
+            context["message"]  = "Something went wrong please try agin later!"
+            context["error"]    = str(e)
+            return Response(context, status=status.HTTP_200_OK)
+
+    @checkRole()
+    def providerUpdate(self,request):
+        context = {}
+        try:
+            payLoad         = request.data
+            payLoad['user'] = request.user.id
+            serializer      = ProviderUpdateDeleteValidationSerializer(data=payLoad)
+            if not serializer.is_valid():
+                context["status"]   = False
+                context["code"]     = status.HTTP_400_BAD_REQUEST
+                context["message"]  = serializer.errors
+                return Response(context, status=status.HTTP_400_BAD_REQUEST)
+
+            providerId = payLoad['id']
+            try:
+                providerObj = Provider.objects.get(id=providerId)
+            except:
+                context["status"]   = False
+                context["code"]     = status.HTTP_400_BAD_REQUEST
+                context["message"]  = "Not found"
+                return Response(context, status=status.HTTP_400_BAD_REQUEST)
+            
+            serializer = ProviderSaveSerializer(providerObj,data=payLoad,partial=True)
+            if not serializer.is_valid():
+                context["status"]   = False
+                context["code"]     = status.HTTP_400_BAD_REQUEST
+                context["message"]  = serializer.errors
+                return Response(context, status=status.HTTP_400_BAD_REQUEST)
+            
+            serializer.save()
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["message"]  = "success"
+            return Response(context, status=status.HTTP_200_OK)
+        except Exception as e:
+            context["status"]   = False
+            context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
+            context["message"]  = "Something went wrong please try agin later!"
+            context["error"]    = str(e)
+            return Response(context, status=status.HTTP_200_OK)
+
+    @checkRole()
+    def providerDelete(self,request):
+        context = {}
+        try:
+            payLoad         = request.data
+            payLoad['user'] = request.user.id
+            serializer      = ProviderUpdateDeleteValidationSerializer(data=payLoad)
+            if not serializer.is_valid():
+                context["status"]   = False
+                context["code"]     = status.HTTP_400_BAD_REQUEST
+                context["message"]  = serializer.errors
+                return Response(context, status=status.HTTP_400_BAD_REQUEST)
+
+            providerId = payLoad['id']
+            try:
+                providerObj = Provider.objects.get(id=providerId)
+            except:
+                context["status"]   = False
+                context["code"]     = status.HTTP_400_BAD_REQUEST
+                context["message"]  = "Not found"
+                return Response(context, status=status.HTTP_400_BAD_REQUEST)
+            
+            providerObj.delete()
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["message"]  = "success"
+            return Response(context, status=status.HTTP_200_OK)
+        except Exception as e:
+            context["status"]   = False
+            context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
+            context["message"]  = "Something went wrong please try agin later!"
+            context["error"]    = str(e)
+            return Response(context, status=status.HTTP_200_OK)
+
+    # Gift Card CRUD
+    @checkRole()
+    def storeGiftCardByFllter(self,request):
+        context = {}
+        try:
+            payLoad       = request.data
+            userObj       = request.user
+            store         = payLoad.get('store', None)
+            provider      = payLoad.get('provider', None)
+            isActive      = payLoad.get('is_active',None)
+
+            filters         = Q(user=userObj)
+        
+            if isActive:
+                filters &= Q(is_active=isActive)
+            elif not isActive and isActive != None:
+                filters &= Q(is_active=isActive)
+
+            if provider:
+                filters &= Q(provider__in=provider)
+
+            if store:
+                filters &= Q(store__in=store)
+
+            giftCardQueryObj    = GiftCard.objects.filter(filters).distinct()
+            serializer          = StoreGiftCardSerializer(giftCardQueryObj, many=True)
+            context["data"]     = serializer.data
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["message"]  = "success"
+            return Response(context, status=status.HTTP_200_OK)
+        except Exception as e:
+            context["data"]     = []
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["message"]  = "success"
+            context["error"]    = str(e)
+            return Response(context, status=status.HTTP_200_OK)
+
+    @checkRole()
+    def storeGiftCardCreate(self,request):
+        context = {}
+        try:
+            payLoad                 = request.data
+            payLoad['user']         = request.user.id
+            payLoad['is_active']    = True
+            serializer              = GiftCardSaveSerializer(data=payLoad)
+            if not serializer.is_valid():
+                context["status"]   = False
+                context["code"]     = status.HTTP_400_BAD_REQUEST
+                context["message"]  = serializer.errors
+                return Response(context, status=status.HTTP_400_BAD_REQUEST)
+            
+
+            serializer.save()
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["message"]  = "success"
+            return Response(context, status=status.HTTP_200_OK)
+        except Exception as e:
+            context["status"]   = False
+            context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
+            context["message"]  = "Something went wrong please try agin later!"
+            context["error"]    = str(e)
+            return Response(context, status=status.HTTP_200_OK)
+
+    @checkRole()
+    def storeGiftCardUpdate(self,request):
+        context = {}
+        try:
+            payLoad         = request.data
+            payLoad['user'] = request.user.id
+            serializer      = GiftCardUpdateDeleteValidationSerializer(data=payLoad)
+            if not serializer.is_valid():
+                context["status"]   = False
+                context["code"]     = status.HTTP_400_BAD_REQUEST
+                context["message"]  = serializer.errors
+                return Response(context, status=status.HTTP_400_BAD_REQUEST)
+
+            giftCardId = payLoad['id']
+            try:
+                giftCardObj = GiftCard.objects.get(id=giftCardId)
+            except:
+                context["status"]   = False
+                context["code"]     = status.HTTP_400_BAD_REQUEST
+                context["message"]  = "Not found"
+                return Response(context, status=status.HTTP_400_BAD_REQUEST)
+            
+            serializer = GiftCardSaveSerializer(giftCardObj,data=payLoad,partial=True)
+            if not serializer.is_valid():
+                context["status"]   = False
+                context["code"]     = status.HTTP_400_BAD_REQUEST
+                context["message"]  = serializer.errors
+                return Response(context, status=status.HTTP_400_BAD_REQUEST)
+            
+            serializer.save()
+            context["status"]   = True
+            context["code"]     = status.HTTP_200_OK
+            context["message"]  = "success"
+            return Response(context, status=status.HTTP_200_OK)
+        except Exception as e:
+            context["status"]   = False
+            context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
+            context["message"]  = "Something went wrong please try agin later!"
+            context["error"]    = str(e)
+            return Response(context, status=status.HTTP_200_OK)
+
+    @checkRole()
+    def storeGiftCardDelete(self,request):
+        context = {}
+        try:
+            payLoad         = request.data
+            payLoad['user'] = request.user.id
+            serializer      = GiftCardUpdateDeleteValidationSerializer(data=payLoad)
+            if not serializer.is_valid():
+                context["status"]   = False
+                context["code"]     = status.HTTP_400_BAD_REQUEST
+                context["message"]  = serializer.errors
+                return Response(context, status=status.HTTP_400_BAD_REQUEST)
+
+            couponId = payLoad['id']
+            try:
+                couponObj = GiftCard.objects.get(id=couponId)
+            except:
+                context["status"]   = False
+                context["code"]     = status.HTTP_400_BAD_REQUEST
+                context["message"]  = "Not found"
                 return Response(context, status=status.HTTP_400_BAD_REQUEST)
             
             couponObj.delete()
@@ -684,7 +981,6 @@ class StoreUserView(viewsets.ViewSet):
             return Response(context, status=status.HTTP_200_OK)
 
         except Exception as e:
-            print(str(e))
             context["data"]     = []
             context["status"]   = True
             context["code"]     = status.HTTP_200_OK
@@ -712,13 +1008,13 @@ class StoreUserView(viewsets.ViewSet):
             context["status"]   = False
             context["code"]     = status.HTTP_500_INTERNAL_SERVER_ERROR
             context["message"]  = "Something went wrong please try agin later!"
+            context["error"]    = str(e)
             return Response(context, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def storeCouponByFllter(self,request):
         context = {}
         try:
             payLoad       = request.data
-            
             categories    = payLoad.get('category', None)
             subCategories = payLoad.get('sub_category', None)
             store         = payLoad.get('store', None)
@@ -728,23 +1024,43 @@ class StoreUserView(viewsets.ViewSet):
 
             optional_filter = Q()
 
-            if subCategories:
+            if subCategories and couponType != 'GIFT_CARD':
                 optional_filter &= Q(sub_category__in=subCategories)
 
-            if categories:
+            if categories and couponType != 'GIFT_CARD':
                 optional_filter |= Q(sub_category__category__in=categories)
 
             if optional_filter:
                 filters &= optional_filter
 
-            if couponType and couponType != "ALL":
+            if couponType and couponType != "ALL" and couponType != "GIFT_CARD":
                 filters &= Q(type=couponType)
             
             if store:
                 filters &= Q(store=store)
 
-            storeQueryObj = Coupon.objects.filter(filters).distinct()
-            serializer = StoreCouponSerializer(storeQueryObj, many=True)
+            if couponType == 'GIFT_CARD':
+                storeQueryObj       = GiftCard.objects.filter(filters)
+                serializer          = StoreGiftCardSerializer(storeQueryObj, many=True)
+                context["data"]     = serializer.data
+                context["status"]   = True
+                context["code"]     = status.HTTP_200_OK
+                context["message"]  = "success"
+                return Response(context, status=status.HTTP_200_OK)
+            
+            if couponType == 'ALL':
+                giftCardQueryObj    = GiftCard.objects.filter(is_active=True, is_deleted=False)
+                storeQueryObj       = Coupon.objects.filter(filters).distinct()
+                serializer          = StoreCommonSerializer({"giftCardObj": giftCardQueryObj, "storeObj": storeQueryObj})
+                context["data"]     = serializer.data['data']
+                context["status"]   = True
+                context["code"]     = status.HTTP_200_OK
+                context["message"]  = "success"
+                return Response(context, status=status.HTTP_200_OK)
+
+
+            storeQueryObj       = Coupon.objects.filter(filters).distinct()
+            serializer          = StoreCouponSerializer(storeQueryObj, many=True)
             context["data"]     = serializer.data
             context["status"]   = True
             context["code"]     = status.HTTP_200_OK

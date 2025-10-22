@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import (Store,SubCategory,Category,Coupon,CouponType,Wishlist,Rating)
+from .models import (Store,SubCategory,Category,Coupon,CouponType,Wishlist,Rating,Provider,GiftCard)
 from customer.models import User
 from django.db.models import Avg,Count
 from payment.models import Order
@@ -47,12 +47,11 @@ class StoreListSerializer(serializers.ModelSerializer):
         read_only_fields = ["user"]
 
     def get_offers(self, obj):
-        return [
-            {
-                "count":obj.coupons.count(),
-                "name":"offers",
-            },
-        ]
+        return {
+            "count":obj.coupons.count() + obj.gift_card.count(),
+            "name":"offers",
+        },
+        
     
     def get_rating(self, obj):
         ratings = obj.rating_set.aggregate(
@@ -134,7 +133,6 @@ class CategoryWithCouponSerializer(serializers.ModelSerializer):
     
 class StoreListWithCouponSerializer(serializers.ModelSerializer):
     categories  = serializers.SerializerMethodField()
-    all         = StoreCouponSerializer(many=True, source='coupons')
     counts      = serializers.SerializerMethodField() 
     rating      = serializers.SerializerMethodField()
     
@@ -159,9 +157,9 @@ class StoreListWithCouponSerializer(serializers.ModelSerializer):
                 "filter_value":CouponType.COUPON,
             },
             {
-                "count":obj.coupons.filter(type=CouponType.GIFT_CARD).count(),
+                "count":obj.gift_card.count(),
                 "name":"Gift cards",
-                "filter_value":CouponType.GIFT_CARD,
+                "filter_value":"GIFT_CARD",
             },
             {
                 "count":obj.coupons.filter(type=CouponType.CASHBACK).count(),
@@ -329,4 +327,49 @@ class CouponSaveSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class CouponUpdateDeleteValidationSerializer(serializers.Serializer):
+    id  = serializers.UUIDField(required=True)
+
+class StoreCommonSerializer(serializers.Serializer):
+    data = serializers.SerializerMethodField()
+
+    def get_data(self, obj):
+        store_obj = obj.get("storeObj", [])
+        gift_card_obj = obj.get("giftCardObj", [])
+        coupon_data = StoreCouponSerializer(store_obj, many=True).data
+        gift_card_data = StoreGiftCardSerializer(gift_card_obj, many=True).data
+        return coupon_data + gift_card_data
+    
+class StoreGiftCardSerializer(serializers.ModelSerializer):
+    class Meta:
+        model   = GiftCard
+        exclude = ("user","provider","store")
+
+class ProviderListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model   = Provider
+        exclude = ("user",)
+
+class ProviderSaveSerializer(serializers.ModelSerializer):
+    name    = serializers.CharField(required=True)
+    api     = serializers.CharField(required=True) 
+    api_key = serializers.CharField(required=True)
+    class Meta:
+        model = Provider
+        fields = "__all__"
+
+class ProviderUpdateDeleteValidationSerializer(serializers.Serializer):
+    id  = serializers.UUIDField(required=True)
+
+class GiftCardSaveSerializer(serializers.ModelSerializer):
+    name            = serializers.CharField(required=True)
+    validate_till   = serializers.DateTimeField(required=True) 
+    min_order_amount = serializers.FloatField(required=True)
+    store           = serializers.PrimaryKeyRelatedField(queryset=Store.objects.all(), required=True)
+    provider        = serializers.PrimaryKeyRelatedField(queryset=Provider.objects.all(), required=True)
+
+    class Meta:
+        model = GiftCard
+        fields = "__all__"
+
+class GiftCardUpdateDeleteValidationSerializer(serializers.Serializer):
     id  = serializers.UUIDField(required=True)

@@ -12,17 +12,17 @@ class PaymentValidateSerializer(serializers.Serializer):
             coupon = Coupon.objects.get(id=coupon_id,is_active=True)
         except:
             raise serializers.ValidationError({
-                'error': 'coupon not found'
+                'error': 'Not found'
             })
 
         if coupon.available_stock <= 0:
             raise serializers.ValidationError({
-                'error': "This coupon is no longer available or has reached its usage limit."
+                'error': "No longer available or has reached its usage limit."
             })
 
         if coupon.validate_till < timezone.now():
             raise serializers.ValidationError({
-                'error': "This coupon has expired."
+                'error': "Expired."
             })
 
         attrs['coupon'] = coupon
