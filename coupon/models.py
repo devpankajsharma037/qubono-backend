@@ -95,7 +95,6 @@ class DiscountType(models.TextChoices):
 class CouponType(models.TextChoices):
     DEAL        = "DEAL", "DEAL"
     COUPON      = "COUPON", "COUPON"
-    GIFT_CARD   = "GIFT_CARD", "GIFT_CARD"
     CASHBACK    = "CASHBACK", "CASHBACK"
 
 class Coupon(CommonModel):
@@ -157,3 +156,25 @@ class Rating(CommonModel):
 
     class Meta:
         verbose_name_plural = 'Rating'
+
+class Provider(CommonModel):
+    name    = models.CharField(max_length=100)
+    user    = models.ForeignKey(User,on_delete=models.CASCADE)
+    meta    = models.JSONField(blank=True,null=True)
+    api     = models.URLField()
+    api_key = models.CharField(blank=True,null=True)
+
+class GiftCard(CommonModel):
+    name            = models.CharField(max_length=100)
+    note            = models.TextField(blank=True,null=True)
+    user            = models.ForeignKey(User,on_delete=models.CASCADE)
+    stock           = models.IntegerField(default=10)
+    is_popular      = models.BooleanField(default=False)
+    is_premium      = models.BooleanField(default=False)
+    available_stock = models.IntegerField(default=10)
+    icon            = models.ImageField(upload_to="image/",blank=True,null=True)
+    banner          = models.ImageField(upload_to="image/",blank=True,null=True)
+    min_order_amount    = models.FloatField(blank=True,null=True)
+    term_conditions = models.TextField(blank=True,null=True)
+    provider        = models.ForeignKey(Provider,on_delete=models.CASCADE)
+    store           = models.ForeignKey(Store,on_delete=models.CASCADE,blank=True,null=True)

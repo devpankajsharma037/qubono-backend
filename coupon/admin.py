@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import (Store,Category,SubCategory,Coupon,Wishlist,Notification,Rating)
+from .models import (Store,Category,SubCategory,Coupon,Wishlist,Provider,Rating,GiftCard)
 from django.utils.html import format_html
 
 commanList = ['is_deleted', 'is_active']
@@ -114,3 +114,30 @@ class RatingAdmin(admin.ModelAdmin):
     stores.short_description = "Store"
 
 admin.site.register(Rating, RatingAdmin)
+
+class ProviderAdmin(admin.ModelAdmin):
+    list_display = ['id','name','users'] + commanList
+
+    def users(self, obj):
+        if obj.user:
+            return format_html(
+                "<a href='/admin/customer/user/{}/change/'>{}</a>",obj.user.id,obj.user
+            )
+        return "-"
+    users.short_description = "Created by"
+
+admin.site.register(Provider, ProviderAdmin)
+
+class GiftCardAdmin(admin.ModelAdmin):
+    list_display = ['id','name','users','stock','is_popular','is_premium'] + commanList
+
+    def users(self, obj):
+        if obj.user:
+            return format_html(
+                "<a href='/admin/customer/user/{}/change/'>{}</a>",obj.user.id,obj.user
+            )
+        return "-"
+    users.short_description = "Created by"
+
+
+admin.site.register(GiftCard, GiftCardAdmin)
